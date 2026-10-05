@@ -1,9 +1,35 @@
 import React from 'react';
 import { Zap, Sparkles } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
+import { SoundToggle } from '../ui/SoundToggle';
+import type { ConnectionStatus } from '../../types/game';
+
+const CONNECTION_META: Record<Exclude<ConnectionStatus, 'idle'>, { label: string; dot: string }> = {
+  connecting: { label: 'Bağlanıyor', dot: 'bg-amber-400 animate-pulse' },
+  connected: { label: 'Canlı', dot: 'bg-emerald-400' },
+  reconnecting: { label: 'Yeniden bağlanıyor', dot: 'bg-amber-400 animate-ping' },
+  offline: { label: 'Çevrimdışı', dot: 'bg-rose-500' },
+};
+
+/** Realtime link health; only meaningful while in a room. */
+export const ConnectionIndicator: React.FC<{ status: ConnectionStatus }> = ({ status }) => {
+  if (status === 'idle') return null;
+  const meta = CONNECTION_META[status];
+  return (
+    <span
+      role="status"
+      aria-label={`Bağlantı: ${meta.label}`}
+      title={meta.label}
+      className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400"
+    >
+      <span className={`inline-block w-2 h-2 rounded-full ${meta.dot}`} />
+      <span className="hidden sm:inline">{meta.label}</span>
+    </span>
+  );
+};
 
 export const Header: React.FC = () => {
-  const { currentScreen, roomCode } = useGame();
+  const { currentScreen, roomCode, connectionStatus } = useGame();
 
   const getScreenTitle = () => {
     switch (currentScreen) {
@@ -17,6 +43,14 @@ export const Header: React.FC = () => {
         return 'Canlı 1v1 Düello';
       case 'RESULT':
         return 'Maç İstatistikleri';
+      case 'MATCHMAKING':
+        return 'Rakip Aranıyor';
+      case 'LEADERBOARD':
+        return 'Liderlik Tablosu';
+      case 'TOURNAMENT':
+        return 'Turnuva';
+      case 'ADMIN':
+        return 'Yönetim';
       default:
         return '';
     }
@@ -51,6 +85,8 @@ export const Header: React.FC = () => {
 
         {/* Screen Indicator */}
         <div className="flex items-center gap-2">
+          <ConnectionIndicator status={connectionStatus} />
+          <SoundToggle />
           <span className="px-3 py-1 rounded-full text-xs font-bold uppercase font-subheading bg-slate-900/90 border border-slate-700/60 text-slate-300 flex items-center gap-1.5 shadow-inner">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
             {getScreenTitle()}

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
 import { Swords, Zap, Flame } from 'lucide-react';
 import { serverNow } from '../../lib/serverClock';
+import { playSound } from '../../lib/sound';
 
 export const VsScreen: React.FC = () => {
   const { myPlayer, opponentPlayer, matchStartTime, setScreen, settings } = useGame();
@@ -11,6 +12,13 @@ export const VsScreen: React.FC = () => {
   const startAt = matchStartTime ?? fallbackStart;
   const [countdown, setCountdown] = useState<number>(() => Math.max(0, Math.ceil((startAt - serverNow()) / 1000)));
   const switchedRef = useRef(false);
+  const lastBeepRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (lastBeepRef.current === countdown) return;
+    lastBeepRef.current = countdown;
+    playSound(countdown > 0 ? 'tick' : 'start');
+  }, [countdown]);
 
   useEffect(() => {
     const update = () => {

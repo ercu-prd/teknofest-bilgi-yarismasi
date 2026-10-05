@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
-import { copyText } from '../../lib/clipboard';
+import { copyText, shareOrCopy } from '../../lib/clipboard';
+import { buildRoomLink } from '../../lib/roomLink';
+import { usePlayerOnline } from '../../hooks/usePlayerPresence';
+import { RoomQrCode } from '../ui/RoomQrCode';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
-import { Copy, Check, UserCheck, ArrowLeft, Loader2, Sparkles, UserPlus } from 'lucide-react';
+import { Copy, Check, UserCheck, ArrowLeft, Loader2, Sparkles, UserPlus, Share2, QrCode, WifiOff, Trophy } from 'lucide-react';
 
 export const LobbyScreen: React.FC = () => {
   const {
@@ -16,7 +19,26 @@ export const LobbyScreen: React.FC = () => {
     toggleReady,
     isStarting,
     leaveRoom,
+    opponentPlayer,
+    roomTournamentCode,
+    errorMsg,
   } = useGame();
+  const [showQr, setShowQr] = useState(false);
+  const [shareNote, setShareNote] = useState<string | null>(null);
+  const opponentOnline = usePlayerOnline(opponentPlayer?.lastSeenAt);
+  const roomLink = buildRoomLink(roomCode);
+
+  const handleShare = async () => {
+    const result = await shareOrCopy({
+      title: 'TEKNOFEST 1v1 Bilgi Arenası',
+      text: `Benimle 1v1 bilgi düellosuna gel! Oda kodu: ${roomCode}`,
+      url: roomLink,
+    });
+    if (result === 'copied') {
+      setShareNote('Davet linki kopyalandı');
+      setTimeout(() => setShareNote(null), 2500);
+    }
+  };
 
   const [copied, setCopied] = useState(false);
 
@@ -49,14 +71,25 @@ export const LobbyScreen: React.FC = () => {
           onClick={() => void leaveRoom()}
           className="flex items-center gap-1.5 text-xs font-bold font-subheading text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" /> Ana Menü
+          <ArrowLeft className="w-4 h-4" /> {roomTournamentCode ? 'Turnuvaya Dön (Hükmen Mağlubiyet)' : 'Ana Menü'}
         </button>
         <span className="text-xs font-bold font-subheading text-cyan-400/80 uppercase">
-          LOBİ BEKLEME ALANI
+          {roomTournamentCode ? 'TURNUVA MAÇI' : 'LOBİ BEKLEME ALANI'}
         </span>
       </div>
 
-      {/* Room Code Card */}
+      {errorMsg && (
+        <p role="alert" className="w-full text-xs text-rose-300 text-center font-semibold">{errorMsg}</p>
+      )}
+
+      {roomTournamentCode ? (
+        <Card variant="purple" glow className="w-full text-center space-y-1.5">
+          <Trophy className="w-6 h-6 text-amber-400 mx-auto" />
+          <p className="text-xs text-slate-300 font-medium">
+            Turnuva eşleşmen hazır. İkiniz de <span className="text-cyan-400 font-bold">HAZIRIM</span> deyince maç başlar.
+          </p>
+        </Card>
+      ) : (
       <Card variant="cyan" glow className="w-full text-center space-y-2.5">
         <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 font-subheading">
           ODA KODU (6 HANELİ)
@@ -78,7 +111,30 @@ export const LobbyScreen: React.FC = () => {
         <p className="text-[11px] text-slate-400 font-medium">
           Diğer oyuncunun odaya katılması için bu 6 haneli kodu paylaşın.
         </p>
+
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => void handleShare()}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-[11px] font-bold hover:border-cyan-500/60 cursor-pointer"
+          >
+            <Share2 className="w-3.5 h-3.5" /> Davet Linki
+          </button>
+          <button
+            onClick={() => setShowQr((v) => !v)}
+            aria-expanded={showQr}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-[11px] font-bold hover:border-cyan-500/60 cursor-pointer"
+          >
+            <QrCode className="w-3.5 h-3.5" /> {showQr ? 'QR Gizle' : 'QR Göster'}
+          </button>
+        </div>
+        {shareNote && <p className="text-[11px] text-emerald-400 font-bold">{shareNote}</p>}
+        {showQr && (
+          <div className="flex justify-center pt-1">
+            <RoomQrCode url={roomLink} size={176} />
+          </div>
+        )}
       </Card>
+      )}
 
       {/* Players Showdown Preview Slot Cards */}
       <div className="grid grid-cols-2 gap-3 w-full">
@@ -93,6 +149,11 @@ export const LobbyScreen: React.FC = () => {
           <Badge variant="cyan" size="sm">
             Ev Sahibi
           </Badge>
+          {!isMePlayer1 && !opponentOnline && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-300" title="Son 45 saniyedir sinyal yok">
+              <WifiOff className="w-3 h-3" /> Bağlantı koptu
+            </span>
+          )}
 
           <div className="relative">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-3xl shadow-lg box-glow-cyan">
@@ -131,6 +192,11 @@ export const LobbyScreen: React.FC = () => {
             <Badge variant="purple" size="sm">
               Katılımcı
             </Badge>
+            {isMePlayer1 && !opponentOnline && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-300" title="Son 45 saniyedir sinyal yok">
+                <WifiOff className="w-3 h-3" /> Bağlantı koptu
+              </span>
+            )}
 
             <div className="relative">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-3xl shadow-lg box-glow-purple">

@@ -4,8 +4,10 @@ import confetti from 'canvas-confetti';
 import { useGame } from '../../context/GameContext';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-import { Trophy, RefreshCw, Home, ExternalLink, Sparkles } from 'lucide-react';
+import { Trophy, RefreshCw, Home, ExternalLink, Sparkles, Hourglass, Swords, UserX } from 'lucide-react';
 import { APP_CONFIG } from '../../config/appConfig';
+import { MatchReview } from '../result/MatchReview';
+import { playSound, vibrate } from '../../lib/sound';
 
 const InstagramIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <svg
@@ -26,9 +28,29 @@ const InstagramIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5"
 );
 
 export const ResultScreen: React.FC = () => {
-  const { myPlayer, opponentPlayer, winner, isDraw, returnToLobby, leaveRoom } = useGame();
+  const {
+    myPlayer,
+    opponentPlayer,
+    winner,
+    isDraw,
+    returnToLobby,
+    leaveRoom,
+    requestRematch,
+    fetchMatchReview,
+    roomTournamentCode,
+    settings,
+    errorMsg,
+  } = useGame();
 
   const isMyVictory = winner?.id === myPlayer.id;
+  const opponentLeft = !opponentPlayer;
+  const iWantRematch = Boolean(myPlayer.wantsRematch);
+  const opponentWantsRematch = Boolean(opponentPlayer?.wantsRematch);
+
+  useEffect(() => {
+    playSound(isMyVictory ? 'win' : isDraw ? 'start' : 'lose');
+    vibrate(isMyVictory ? [80, 40, 80, 40, 160] : 120);
+  }, [isMyVictory, isDraw]);
 
   useEffect(() => {
     if (isMyVictory || isDraw) {
@@ -84,7 +106,9 @@ export const ResultScreen: React.FC = () => {
           )}
         </h1>
         <p className="text-xs text-slate-400 font-medium">
-          {isDraw
+          {opponentLeft && !isDraw
+            ? 'Rakibin maçtan ayrıldı, galibiyet senin!'
+            : isDraw
             ? 'Mükemmel kapışma! Skorlar eşit.'
             : isMyVictory
             ? `Tebrikler ${myPlayer.name}, harika bir performans gösterdin!`
@@ -143,7 +167,7 @@ export const ResultScreen: React.FC = () => {
               DOĞRU CEVAP
             </span>
             <span className="text-sm font-extrabold text-emerald-400 font-heading">
-              {myPlayer.correctAnswers} / 10
+              {myPlayer.correctAnswers} / {settings.questionCount}
             </span>
           </div>
 
@@ -157,6 +181,8 @@ export const ResultScreen: React.FC = () => {
           </div>
         </div>
       </Card>
+
+      <MatchReview load={fetchMatchReview} opponentName={opponentPlayer?.name ?? 'Rakip'} />
 
       {/* Animated Instagram Follow Section (Visible to both Winner & Loser) */}
       <motion.div
@@ -191,15 +217,52 @@ export const ResultScreen: React.FC = () => {
 
       {/* Action Buttons */}
       <div className="w-full space-y-2.5 pt-1">
-        <Button
-          variant="cyan"
-          size="lg"
-          fullWidth
-          onClick={() => void returnToLobby()}
-        >
-          <RefreshCw className="w-5 h-5" />
-          <span>TEKRAR OYNA</span>
-        </Button>
+        {errorMsg && (
+          <p role="alert" className="text-xs text-rose-300 text-center font-semibold">{errorMsg}</p>
+        )}
+
+        {roomTournamentCode ? (
+          <Button variant="cyan" size="lg" fullWidth onClick={() => void leaveRoom()}>
+            <Trophy className="w-5 h-5" />
+            <span>TURNUVAYA DÖN</span>
+          </Button>
+        ) : opponentLeft ? (
+          <>
+            <p className="flex items-center justify-center gap-1.5 text-xs text-slate-400 font-semibold">
+              <UserX className="w-4 h-4" /> Rakibin odadan ayrıldı.
+            </p>
+            <Button variant="cyan" size="lg" fullWidth onClick={() => void returnToLobby()}>
+              <RefreshCw className="w-5 h-5" />
+              <span>YENİ RAKİP BEKLE</span>
+            </Button>
+          </>
+        ) : iWantRematch ? (
+          <>
+            <div className="flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-900/80 border border-cyan-500/30 text-cyan-200 text-xs font-bold">
+              <Hourglass className="w-4 h-4 animate-pulse" />
+              <span>Rövanş isteği gönderildi, {opponentPlayer?.name} bekleniyor…</span>
+            </div>
+            <Button variant="ghost" size="md" fullWidth onClick={() => void requestRematch(false)}>
+              İsteği Geri Çek
+            </Button>
+          </>
+        ) : (
+          <>
+            {opponentWantsRematch && (
+              <motion.p
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex items-center justify-center gap-1.5 text-xs text-amber-300 font-bold"
+              >
+                <Swords className="w-4 h-4" /> {opponentPlayer?.name} rövanş istiyor!
+              </motion.p>
+            )}
+            <Button variant="cyan" size="lg" fullWidth onClick={() => void requestRematch(true)}>
+              <RefreshCw className="w-5 h-5" />
+              <span>{opponentWantsRematch ? 'RÖVANŞI KABUL ET' : 'RÖVANŞ İSTE'}</span>
+            </Button>
+          </>
+        )}
 
         <Button
           variant="ghost"

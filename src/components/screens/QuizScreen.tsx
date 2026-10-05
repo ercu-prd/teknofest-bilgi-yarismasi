@@ -3,7 +3,10 @@ import { motion } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
-import { Clock, Zap, CheckCircle2, XCircle } from 'lucide-react';
+import { Clock, Zap, CheckCircle2, XCircle, WifiOff } from 'lucide-react';
+import { playSound, vibrate } from '../../lib/sound';
+import { usePlayerOnline } from '../../hooks/usePlayerPresence';
+import { categoryLabel } from '../../data/categories';
 import { serverNow } from '../../lib/serverClock';
 import { APP_CONFIG } from '../../config/appConfig';
 
@@ -22,6 +25,12 @@ export const QuizScreen: React.FC = () => {
     settings,
   } = useGame();
   const matchSeconds = settings.matchSeconds;
+  const opponentOnline = usePlayerOnline(opponentPlayer?.lastSeenAt);
+  const opponentProgress = opponentPlayer
+    ? opponentPlayer.finishedAt
+      ? questions.length
+      : Math.min(opponentPlayer.currentQuestionIndex ?? 0, questions.length)
+    : 0;
 
   const [timeLeft, setTimeLeft] = useState<number>(() => {
     if (!matchStartTime) return matchSeconds;
@@ -60,6 +69,11 @@ export const QuizScreen: React.FC = () => {
     const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
   }, [matchStartTime, matchSeconds, finishQuiz]);
+
+  // Audible warning during the last five seconds.
+  useEffect(() => {
+    if (timeLeft > 0 && timeLeft <= 5) playSound('tick');
+  }, [timeLeft]);
 
   // Clean up timers on unmount
   useEffect(() => {
@@ -111,6 +125,8 @@ export const QuizScreen: React.FC = () => {
       isCorrect,
       correctIndex: correctIdx,
     });
+    playSound(isCorrect ? 'correct' : 'wrong');
+    vibrate(isCorrect ? 40 : [60, 40, 60]);
     setQuestionState('FEEDBACK');
 
     // 5. Display feedback for at least 1200ms before advancing
@@ -178,6 +194,13 @@ export const QuizScreen: React.FC = () => {
             <div className="text-sm font-extrabold font-heading text-purple-300">
               {opponentPlayer ? opponentPlayer.score : 0} <span className="text-[9px] font-normal text-slate-400">Puan</span>
             </div>
+            <div
+              className="flex items-center justify-end gap-1 text-[9px] font-bold text-slate-400"
+              aria-label={`Rakip ilerlemesi: ${opponentProgress} / ${questions.length}`}
+            >
+              {!opponentOnline && <WifiOff className="w-2.5 h-2.5 text-rose-400" aria-label="Rakibin bağlantısı koptu" />}
+              <span>{opponentProgress}/{questions.length}</span>
+            </div>
           </div>
           <div className="w-9 h-9 rounded-xl bg-purple-950 border border-purple-500/40 flex items-center justify-center text-lg box-glow-purple">
             {opponentPlayer ? opponentPlayer.avatar : '⚡'}
@@ -213,7 +236,7 @@ export const QuizScreen: React.FC = () => {
           {/* Progress & Category Banner */}
           <div className="flex items-center justify-between px-1">
             <Badge variant="cyan" size="sm" icon={<Zap className="w-3 h-3 text-cyan-400" />}>
-              {currentQ?.category || 'Genel'}
+              {categoryLabel(currentQ?.category || 'genel')}
             </Badge>
             <span className="text-xs font-bold font-heading text-slate-400">
               SORU <span className="text-cyan-400">{currentQuestionIndex + 1}</span> / {questions.length}

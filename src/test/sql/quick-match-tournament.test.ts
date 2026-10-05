@@ -149,7 +149,7 @@ describe('hızlı eşleşme', () => {
     const room = await getRoom(db, code);
     expect(room?.status).toBe('LOBBY');
     expect(room?.tournament_code).toBeNull();
-    expect((room?.match_questions as unknown[]).length).toBe(10);
+    expect(room?.match_questions as unknown[]).toHaveLength(10);
     expect((await getPlayer(db, code, a))?.is_host).toBe(true);
     expect((await getPlayer(db, code, b))?.is_host).toBe(false);
     expect((await getPlayer(db, code, b))?.name).toBe('Bora');

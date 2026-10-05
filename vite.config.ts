@@ -16,10 +16,27 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        // Long-lived vendor chunks: they change rarely, so returning players
+        // (and the service worker cache) keep them across app deploys.
+        codeSplitting: {
+          groups: [
+            { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+            { name: 'supabase', test: /node_modules[\\/]@supabase[\\/]/ },
+            { name: 'motion', test: /node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/ },
+            { name: 'vendor', test: /node_modules[\\/]/ },
+          ],
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     restoreMocks: true,
+    exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
   },
 })

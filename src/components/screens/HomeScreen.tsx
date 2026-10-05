@@ -1,21 +1,67 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { AvatarSelector } from '../ui/AvatarSelector';
-import { Users, PlusCircle, ArrowRight, Gamepad2, AlertCircle } from 'lucide-react';
+import { Users, PlusCircle, ArrowRight, Gamepad2, AlertCircle, Zap, Trophy, BarChart3, Loader2 } from 'lucide-react';
 import { AVATAR_OPTIONS } from '../../data/avatars';
+import { APP_CONFIG } from '../../config/appConfig';
+import {
+  clearRoomCodeFromUrl,
+  clearTournamentCodeFromUrl,
+  readRoomCodeFromUrl,
+  readTournamentCodeFromUrl,
+} from '../../lib/roomLink';
 
 export const HomeScreen: React.FC = () => {
-  const { player1, updatePlayerName, updatePlayerAvatar, createRoom, joinRoom, errorMsg: globalErrorMsg, clearError } = useGame();
+  const {
+    player1,
+    updatePlayerName,
+    updatePlayerAvatar,
+    createRoom,
+    joinRoom,
+    startQuickMatch,
+    openTournament,
+    setScreen,
+    settings,
+    isBusy,
+    errorMsg: globalErrorMsg,
+    clearError,
+  } = useGame();
   const [selectedAvatarId, setSelectedAvatarId] = useState<string>(
     AVATAR_OPTIONS.find((a) => a.icon === player1.avatar)?.id || 'pilot'
   );
   const [nameInput, setNameInput] = useState<string>(player1.name);
-  const [isJoinModalOpen, setIsJoinModalOpen] = useState<boolean>(false);
-  const [joinCodeInput, setJoinCodeInput] = useState<string>('');
+  // A QR / invite link (?room=123456) opens the join dialog pre-filled.
+  const [linkedRoomCode] = useState<string | null>(() => readRoomCodeFromUrl());
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState<boolean>(Boolean(linkedRoomCode));
+  const [joinCodeInput, setJoinCodeInput] = useState<string>(linkedRoomCode ?? '');
   const [localErrorMsg, setLocalErrorMsg] = useState<string>('');
+
+  // A tournament invite link (?tournament=123456) jumps straight to that tournament.
+  useEffect(() => {
+    const tournamentCode = readTournamentCodeFromUrl();
+    if (tournamentCode) {
+      clearTournamentCodeFromUrl();
+      openTournament(tournamentCode);
+    }
+    // Only on first mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const requireName = (message = 'Lütfen takma adınızı girin!'): boolean => {
+    if (nameInput.trim()) return true;
+    setLocalErrorMsg(message);
+    return false;
+  };
+
+  const handleQuickMatch = async () => {
+    if (!requireName()) return;
+    setLocalErrorMsg('');
+    clearError();
+    await startQuickMatch(nameInput, selectedAvatarId);
+  };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -51,6 +97,7 @@ export const HomeScreen: React.FC = () => {
     setLocalErrorMsg('');
     clearError();
     await joinRoom(joinCodeInput, nameInput, selectedAvatarId);
+    clearRoomCodeFromUrl();
   };
 
   const activeError = globalErrorMsg || localErrorMsg;
@@ -121,7 +168,7 @@ export const HomeScreen: React.FC = () => {
               type="text"
               value={nameInput}
               onChange={handleNameChange}
-              maxLength={16}
+              maxLength={APP_CONFIG.playerNameMaxLength}
               placeholder="Örn: TeknoPilot_34"
               className="w-full bg-slate-950/80 border border-slate-700 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl px-4 py-3 text-sm font-semibold text-white placeholder-slate-600 outline-none transition-all font-sans"
             />
@@ -140,22 +187,48 @@ export const HomeScreen: React.FC = () => {
             variant="cyan"
             size="lg"
             fullWidth
-            onClick={handleCreateRoom}
+            onClick={() => void handleQuickMatch()}
+            disabled={isBusy}
             className="group"
           >
-            <PlusCircle className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-            <span>ODA OLUŞTUR</span>
+            <Zap className="w-5 h-5" />
+            <span>HIZLI EŞLEŞ</span>
           </Button>
 
-          <Button
-            variant="outline"
-            size="lg"
-            fullWidth
-            onClick={() => setIsJoinModalOpen(true)}
-          >
-            <Users className="w-5 h-5" />
-            <span>ODAYA KATIL</span>
-          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" size="md" fullWidth onClick={handleCreateRoom} disabled={isBusy} className="group">
+              {isBusy ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <PlusCircle className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+              )}
+              <span>ODA KUR</span>
+            </Button>
+            <Button variant="outline" size="md" fullWidth onClick={() => setIsJoinModalOpen(true)} disabled={isBusy}>
+              <Users className="w-4 h-4" />
+              <span>ODAYA KATIL</span>
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant="purple"
+              size="md"
+              fullWidth
+              onClick={() => {
+                if (!requireName()) return;
+                clearError();
+                setScreen('TOURNAMENT');
+              }}
+            >
+              <Trophy className="w-4 h-4" />
+              <span>TURNUVA</span>
+            </Button>
+            <Button variant="ghost" size="md" fullWidth onClick={() => setScreen('LEADERBOARD')}>
+              <BarChart3 className="w-4 h-4" />
+              <span>LİDERLİK</span>
+            </Button>
+          </div>
         </div>
       </Card>
 
@@ -167,11 +240,11 @@ export const HomeScreen: React.FC = () => {
         </div>
         <div className="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/60 backdrop-blur-sm">
           <div className="text-purple-400 text-xs font-bold font-subheading">SÜRE</div>
-          <div className="text-slate-200 text-xs font-bold">90 Saniye</div>
+          <div className="text-slate-200 text-xs font-bold">{settings.matchSeconds} Saniye</div>
         </div>
         <div className="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/60 backdrop-blur-sm">
           <div className="text-teal-400 text-xs font-bold font-subheading">SORU</div>
-          <div className="text-slate-200 text-xs font-bold">10 Soru</div>
+          <div className="text-slate-200 text-xs font-bold">{settings.questionCount} Soru</div>
         </div>
       </div>
 
@@ -205,7 +278,10 @@ export const HomeScreen: React.FC = () => {
               <input
                 type="text"
                 value={joinCodeInput}
-                onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
+                onChange={(e) => setJoinCodeInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                inputMode="numeric"
+                autoComplete="off"
+                aria-label="Oda kodu"
                 placeholder="Örn: 849204"
                 maxLength={6}
                 className="w-full text-center tracking-widest text-xl font-bold font-heading uppercase bg-slate-950 border border-cyan-500/50 focus:border-cyan-400 rounded-xl py-3 text-cyan-300 outline-none placeholder-slate-600"
@@ -224,6 +300,7 @@ export const HomeScreen: React.FC = () => {
                 variant="cyan"
                 fullWidth
                 onClick={handleJoinRoomSubmit}
+                disabled={isBusy}
               >
                 <span>KATIL</span>
                 <ArrowRight className="w-4 h-4" />
