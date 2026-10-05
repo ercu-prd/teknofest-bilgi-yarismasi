@@ -32,9 +32,9 @@ export const QuizScreen: React.FC = () => {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [serverFeedback, setServerFeedback] = useState<{ isCorrect: boolean; correctIndex?: number } | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
-  const [hasFinishedAll, setHasFinishedAll] = useState<boolean>(
-    () => questions.length > 0 && currentQuestionIndex >= questions.length
-  );
+  const [finishedLocally, setHasFinishedAll] = useState<boolean>(false);
+  // Also true after a refresh that restores a player who already answered everything.
+  const hasFinishedAll = finishedLocally || (questions.length > 0 && currentQuestionIndex >= questions.length);
 
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const finishDelayRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -83,18 +83,6 @@ export const QuizScreen: React.FC = () => {
       finishDelayRef.current = null;
     };
   }, [hasFinishedAll, opponentPlayer?.finishedAt, finishQuiz]);
-
-  // Reset local state whenever currentQuestionIndex changes
-  useEffect(() => {
-    if (questions.length > 0 && currentQuestionIndex >= questions.length) {
-      setHasFinishedAll(true);
-      return;
-    }
-    setQuestionState('IDLE');
-    setSelectedOption(null);
-    setServerFeedback(null);
-    setFeedbackError(null);
-  }, [currentQuestionIndex, questions.length]);
 
   const handleSelectOption = async (idx: number) => {
     if (questionState !== 'IDLE' || hasFinishedAll) return;
