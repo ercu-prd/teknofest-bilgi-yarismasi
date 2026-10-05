@@ -1,20 +1,20 @@
 {
-  "name": "TEKNOFEST 1v1 Bilgi Arenası",
-  "short_name": "TEKNO Arena",
-  "description": "Teknofest Üniversite Kulübü 1v1 Mobil Öncelikli Bilgi Yarışması Platformu",
+  "name": "OKÜ TEKNOFEST Bilgi Yarışması",
+  "short_name": "OKÜ TEKNOFEST",
+  "description": "Osmaniye Korkut Ata Üniversitesi TEKNOFEST Kulübü 1v1 bilgi yarışması",
   "lang": "tr",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#070a12",
-  "background_color": "#070a12",
+  "theme_color": "#ffffff",
+  "background_color": "#f4f6fa",
   "icons": [
     {
-      "src": "favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "oku-teknofest-logo.jpg",
+      "sizes": "640x640",
+      "type": "image/jpeg",
+      "purpose": "any"
     }
   ]
 }

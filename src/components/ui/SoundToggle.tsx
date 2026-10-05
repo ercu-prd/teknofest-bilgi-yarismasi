@@ -18,10 +18,8 @@ export const SoundToggle: React.FC<SoundToggleProps> = ({ className = '' }) => {
       aria-label={label}
       aria-pressed={muted}
       title={label}
-      className={`inline-flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-200 active:scale-95 select-none ${
-        muted
-          ? 'border-slate-700/60 bg-slate-800/40 text-slate-500 hover:text-slate-300 hover:border-slate-600'
-          : 'border-cyan-500/40 bg-cyan-950/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.25)]'
+      className={`inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors select-none cursor-pointer hover:bg-subtle ${
+        muted ? 'text-muted' : 'text-ink-soft'
       } ${className}`}
     >
       <Icon className="w-5 h-5" aria-hidden="true" />

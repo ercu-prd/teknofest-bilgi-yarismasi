@@ -1,6 +1,6 @@
 /* TEKNO Arena service worker: app shell önbelleği + statik varlıklar için stale-while-revalidate. */
-const CACHE_NAME = 'tekno-arena-v1';
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './favicon.svg'];
+const CACHE_NAME = 'oku-teknofest-v2';
+const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './oku-teknofest-logo.jpg'];
 const STATIC_EXT = /\.(?:js|css|svg|png|woff2)$/i;
 
 self.addEventListener('install', (event) => {

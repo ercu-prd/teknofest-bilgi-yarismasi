@@ -1,55 +1,51 @@
 import React from 'react';
-import { motion, type HTMLMotionProps } from 'framer-motion';
 
-interface ButtonProps extends HTMLMotionProps<'button'> {
-  variant?: 'cyan' | 'purple' | 'outline' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
+type Variant = 'primary' | 'secondary' | 'accent' | 'ghost' | 'danger';
+/** @deprecated Eski neon tema isimleri; yeniden tasarım bitince kaldırılacak. */
+type LegacyVariant = 'cyan' | 'purple' | 'outline';
+const LEGACY: Record<LegacyVariant, Variant> = { cyan: 'primary', purple: 'secondary', outline: 'secondary' };
+type Size = 'sm' | 'md' | 'lg';
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: Variant | LegacyVariant;
+  size?: Size;
   children: React.ReactNode;
   fullWidth?: boolean;
-  glow?: boolean;
   className?: string;
 }
 
+const base =
+  'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-colors duration-150 select-none ' +
+  'disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-px cursor-pointer';
+
+const sizes: Record<Size, string> = {
+  sm: 'h-9 px-3.5 text-sm',
+  md: 'h-11 px-4 text-[15px]',
+  lg: 'h-12 px-5 text-base',
+};
+
+const variants: Record<Variant, string> = {
+  primary: 'bg-brand text-white hover:bg-brand-hover',
+  secondary: 'bg-surface text-ink border border-line hover:border-line-strong hover:bg-subtle',
+  accent: 'bg-accent text-white hover:bg-accent-hover',
+  ghost: 'bg-transparent text-ink-soft hover:bg-subtle hover:text-ink',
+  danger: 'bg-surface text-danger border border-danger/30 hover:bg-danger-soft',
+};
+
 export const Button: React.FC<ButtonProps> = ({
-  variant = 'cyan',
+  variant = 'primary',
   size = 'md',
   children,
   fullWidth = false,
-  glow = true,
   className = '',
-  disabled,
+  type = 'button',
   ...props
-}) => {
-  const baseStyles = "relative inline-flex items-center justify-center font-heading font-bold uppercase tracking-wider transition-all duration-200 rounded-xl overflow-hidden disabled:opacity-50 disabled:pointer-events-none select-none active:scale-[0.98]";
-
-  const sizeStyles = {
-    sm: "px-4 py-2 text-xs gap-2 min-h-[38px]",
-    md: "px-6 py-3.5 text-sm gap-2.5 min-h-[48px]",
-    lg: "px-8 py-4 text-base gap-3 min-h-[56px]",
-  };
-
-  const variantStyles = {
-    cyan: `bg-gradient-to-r from-cyan-500 via-cyan-400 to-teal-400 text-black shadow-lg shadow-cyan-500/20 hover:shadow-cyan-400/40 hover:brightness-110 ${glow ? 'box-glow-cyan' : ''}`,
-    purple: `bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 text-white shadow-lg shadow-purple-600/20 hover:shadow-purple-500/40 hover:brightness-110 ${glow ? 'box-glow-purple' : ''}`,
-    outline: "border-2 border-cyan-500/50 bg-cyan-950/20 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300",
-    ghost: "bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50",
-    danger: "bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-lg shadow-rose-600/20 hover:shadow-rose-500/40",
-  };
-
-  return (
-    <motion.button
-      whileHover={{ scale: disabled ? 1 : 1.02 }}
-      whileTap={{ scale: disabled ? 1 : 0.96 }}
-      className={`${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
-      disabled={disabled}
-      {...props}
-    >
-      {/* Top reflection line */}
-      <span className="absolute inset-x-0 top-0 h-[1px] bg-white/30" />
-      
-      <span className="relative z-10 flex items-center justify-center gap-2">
-        {children}
-      </span>
-    </motion.button>
-  );
-};
+}) => (
+  <button
+    type={type}
+    className={`${base} ${sizes[size]} ${variants[variant in LEGACY ? LEGACY[variant as LegacyVariant] : (variant as Variant)]} ${fullWidth ? 'w-full' : ''} ${className}`}
+    {...props}
+  >
+    {children}
+  </button>
+);

@@ -36,7 +36,7 @@ export const RoomQrCode: React.FC<RoomQrCodeProps> = ({ url, size = 192, classNa
 
   return (
     <div
-      className={`inline-block rounded-2xl border border-cyan-500/30 bg-white p-3 shadow-[0_0_24px_rgba(34,211,238,0.2)] ${className}`}
+      className={`inline-block rounded-2xl border border-line bg-white p-3 ${className}`}
     >
       <img
         src={src}

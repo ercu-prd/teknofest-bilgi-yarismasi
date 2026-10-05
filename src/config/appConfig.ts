@@ -4,7 +4,9 @@ export const APP_CONFIG = {
    * Tek bir yapılandırma noktasından yönetilir.
    */
   instagramUrl: 'https://www.instagram.com/oku.teknofest/',
-  clubName: 'TEKNOFEST OKÜ',
+  clubName: 'OKÜ TEKNOFEST Kulübü',
+  appName: 'OKÜ TEKNOFEST Bilgi Yarışması',
+  universityName: 'Osmaniye Korkut Ata Üniversitesi',
   /** Defaults only: the server's public.quiz_settings() is authoritative and overrides these at runtime. */
   matchQuestionCount: 10,
   matchDurationSeconds: 90,

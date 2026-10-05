@@ -1,8 +1,8 @@
 import React, { Suspense, lazy } from 'react';
-import { Loader2 } from 'lucide-react';
 import { GameProvider, useGame } from './context/GameContext';
 import { Header } from './components/common/Header';
-import { CyberBackground } from './components/common/CyberBackground';
+import { LogoSpinnerBlock } from './components/ui/LogoSpinner';
+import { APP_CONFIG } from './config/appConfig';
 
 import { HomeScreen } from './components/screens/HomeScreen';
 import { LobbyScreen } from './components/screens/LobbyScreen';
@@ -17,11 +17,7 @@ const TournamentScreen = lazy(() => import('./components/screens/TournamentScree
 const LeaderboardScreen = lazy(() => import('./components/screens/LeaderboardScreen'));
 const AdminScreen = lazy(() => import('./components/screens/AdminScreen'));
 
-const ScreenFallback: React.FC = () => (
-  <div className="flex items-center justify-center py-20 text-cyan-400" role="status" aria-label="Yükleniyor">
-    <Loader2 className="w-8 h-8 animate-spin" />
-  </div>
-);
+const ScreenFallback: React.FC = () => <LogoSpinnerBlock />;
 
 const isStandMode = () => typeof window !== 'undefined' && window.location.hash.startsWith('#/leaderboard');
 
@@ -53,21 +49,21 @@ const MainContent: React.FC = () => {
     }
   };
 
-  return (
-    <div className="relative min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
-      <CyberBackground />
-      <Header />
+  const standMode = currentScreen === 'LEADERBOARD' && isStandMode();
 
-      <main className="flex-1 flex flex-col justify-center px-3 py-6 z-10">
+  return (
+    <div className="min-h-dvh flex flex-col bg-canvas">
+      {!standMode && <Header />}
+
+      <main className={`flex-1 w-full mx-auto px-4 py-5 ${standMode ? 'max-w-7xl' : currentScreen === 'ADMIN' ? 'max-w-3xl' : 'max-w-md'}`}>
         <Suspense fallback={<ScreenFallback />}>{renderScreen()}</Suspense>
       </main>
 
-      {/* Footer Branding */}
-      <footer className="z-10 py-3 text-center border-t border-slate-900 bg-[#070a12]/60 backdrop-blur-md">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-subheading">
-          TEKNOFEST Üniversite Kulübü • 1v1 Arena v2.0
-        </p>
-      </footer>
+      {!standMode && (
+        <footer className="safe-bottom border-t border-line bg-surface px-4 pt-3 text-center text-xs text-muted">
+          {APP_CONFIG.universityName} · {APP_CONFIG.clubName}
+        </footer>
+      )}
     </div>
   );
 };

@@ -12,10 +12,10 @@ export const AvatarSelector: React.FC<AvatarSelectorProps> = ({
 }) => {
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 font-subheading">
-        Profil Karakteri Seç
-      </label>
-      <div className="grid grid-cols-6 gap-2">
+      <span className="block text-sm font-medium text-ink-soft" id="avatar-label">
+        Avatar
+      </span>
+      <div className="grid grid-cols-6 gap-2" role="radiogroup" aria-labelledby="avatar-label">
         {AVATAR_OPTIONS.map((avatar) => {
           const isSelected = selectedId === avatar.id;
           return (
@@ -23,17 +23,17 @@ export const AvatarSelector: React.FC<AvatarSelectorProps> = ({
               key={avatar.id}
               type="button"
               onClick={() => onSelect(avatar.id)}
-              className={`relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 aspect-square ${
+              role="radio"
+              aria-checked={isSelected}
+              aria-label={avatar.name}
+              className={`flex items-center justify-center aspect-square rounded-xl border transition-colors cursor-pointer ${
                 isSelected
-                  ? 'bg-cyan-950/80 border-cyan-400 box-glow-cyan text-cyan-300 scale-105 z-10'
-                  : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                  ? 'bg-brand-soft border-brand ring-1 ring-brand'
+                  : 'bg-surface border-line hover:border-line-strong'
               }`}
               title={avatar.name}
             >
-              <span className="text-2xl select-none">{avatar.icon}</span>
-              {isSelected && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full animate-ping" />
-              )}
+              <span className="text-2xl select-none" aria-hidden="true">{avatar.icon}</span>
             </button>
           );
         })}
