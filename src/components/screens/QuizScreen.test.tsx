@@ -88,8 +88,8 @@ describe('QuizScreen', () => {
     await act(async () => {
       fireEvent.click(option('CO2'));
     });
-    expect(option('CO2').className).toMatch(/rose/);
-    expect(option('H2O').className).toMatch(/emerald/);
+    expect(option('CO2').className).toMatch(/danger/);
+    expect(option('H2O').className).toMatch(/success/);
   });
 
   it('gönderim sürerken ikinci tıklama yeni istek göndermez', async () => {
@@ -127,7 +127,7 @@ describe('QuizScreen', () => {
       fireEvent.click(option('Ankara'));
     });
     act(() => vi.advanceTimersByTime(1200));
-    expect(screen.getByText(/TÜM SORULARI TAMAMLADIN/)).toBeInTheDocument();
+    expect(screen.getByText(/Tüm soruları tamamladın/)).toBeInTheDocument();
     expect(finishQuiz).toHaveBeenCalled();
   });
 
@@ -153,6 +153,6 @@ describe('QuizScreen', () => {
 
   it('sayfa yenilenip tüm sorular bitmiş hâlde açılırsa bekleme ekranını gösterir', () => {
     setup({ currentQuestionIndex: 2 });
-    expect(screen.getByText(/TÜM SORULARI TAMAMLADIN/)).toBeInTheDocument();
+    expect(screen.getByText(/Tüm soruları tamamladın/)).toBeInTheDocument();
   });
 });

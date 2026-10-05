@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
-import { Clock, Zap, CheckCircle2, XCircle, WifiOff } from 'lucide-react';
+import { LogoSpinner } from '../ui/LogoSpinner';
+import { AlertCircle, CheckCircle2, XCircle, WifiOff } from 'lucide-react';
 import { playSound, vibrate } from '../../lib/sound';
 import { usePlayerOnline } from '../../hooks/usePlayerPresence';
 import { categoryLabel } from '../../data/categories';
@@ -147,111 +148,119 @@ export const QuizScreen: React.FC = () => {
   };
 
   const optionLabels = ['A', 'B', 'C', 'D'];
+  const total = questions.length;
+  const answeredCount = hasFinishedAll ? total : Math.min(currentQuestionIndex, total);
+  const progressPct = total > 0 ? Math.round((answeredCount / total) * 100) : 0;
+  const isCritical = timeLeft <= 10;
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="flex flex-col justify-between space-y-4 w-full max-w-md mx-auto py-1 px-1"
+      transition={{ duration: 0.2 }}
+      className="flex w-full flex-col gap-4"
     >
-      {/* Live Match Scoreboard Bar */}
-      <div className="grid grid-cols-3 gap-2 items-center bg-slate-950/90 border border-slate-800 rounded-2xl p-2.5 backdrop-blur-md shadow-xl">
-        {/* My Player Score (Cyan - Left) */}
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-cyan-950 border border-cyan-500/40 flex items-center justify-center text-lg box-glow-cyan">
-            {myPlayer.avatar}
-          </div>
-          <div className="overflow-hidden">
-            <span className="text-[10px] font-bold text-slate-400 font-subheading block truncate">
-              {myPlayer.name} (Sen)
+      {/* Skor çubuğu */}
+      <div className="space-y-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 rounded-2xl border border-line bg-surface p-3 shadow-card">
+          {/* Sen */}
+          <div className="flex min-w-0 items-center gap-2">
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-lg ring-2 ring-brand"
+              aria-hidden="true"
+            >
+              {myPlayer.avatar}
             </span>
-            <div className="text-sm font-extrabold font-heading text-cyan-300">
-              {myPlayer.score} <span className="text-[9px] font-normal text-slate-400">Puan</span>
+            <div className="min-w-0">
+              <span className="block truncate text-xs text-ink-soft">{myPlayer.name} (Sen)</span>
+              <span className="font-display tabular text-lg font-bold leading-tight text-brand">{myPlayer.score}</span>
             </div>
           </div>
-        </div>
 
-        {/* Global Timer */}
-        <div className="flex flex-col items-center justify-center border-x border-slate-800/80 px-1">
-          <div className="flex items-center gap-1 text-amber-400">
-            <Clock className="w-3.5 h-3.5 animate-pulse" />
-            <span className="text-base font-black font-heading tracking-widest text-glow-purple">
+          {/* Süre */}
+          <div className="flex flex-col items-center px-1" aria-label="Kalan süre">
+            <span
+              className={`font-display tabular text-3xl font-bold leading-none ${isCritical ? 'text-accent' : 'text-ink'}`}
+            >
               {timeLeft}s
             </span>
+            <span className="mt-0.5 text-[11px] text-muted">kalan</span>
           </div>
-          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
-            KALAN SÜRE
-          </span>
+
+          {/* Rakip */}
+          <div className="flex min-w-0 items-center justify-end gap-2 text-right">
+            <div className="min-w-0">
+              <span className="block truncate text-xs text-ink-soft">{opponentPlayer ? opponentPlayer.name : 'Rakip'}</span>
+              <span className="font-display tabular text-lg font-bold leading-tight text-ink">
+                {opponentPlayer ? opponentPlayer.score : 0}
+              </span>
+              <div
+                className="flex items-center justify-end gap-1 text-[11px] text-muted"
+                aria-label={`Rakip ilerlemesi: ${opponentProgress} / ${questions.length}`}
+              >
+                {!opponentOnline && <WifiOff className="h-3 w-3 text-danger" aria-label="Rakibin bağlantısı koptu" />}
+                <span className="tabular">{opponentProgress}/{questions.length}</span>
+              </div>
+            </div>
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-subtle text-lg ring-1 ring-line-strong"
+              aria-hidden="true"
+            >
+              {opponentPlayer ? opponentPlayer.avatar : '👤'}
+            </span>
+          </div>
         </div>
 
-        {/* Opponent Score (Purple - Right) */}
-        <div className="flex items-center justify-end gap-2 text-right">
-          <div className="overflow-hidden">
-            <span className="text-[10px] font-bold text-slate-400 font-subheading block truncate">
-              {opponentPlayer ? opponentPlayer.name : 'Rakip'}
-            </span>
-            <div className="text-sm font-extrabold font-heading text-purple-300">
-              {opponentPlayer ? opponentPlayer.score : 0} <span className="text-[9px] font-normal text-slate-400">Puan</span>
-            </div>
-            <div
-              className="flex items-center justify-end gap-1 text-[9px] font-bold text-slate-400"
-              aria-label={`Rakip ilerlemesi: ${opponentProgress} / ${questions.length}`}
-            >
-              {!opponentOnline && <WifiOff className="w-2.5 h-2.5 text-rose-400" aria-label="Rakibin bağlantısı koptu" />}
-              <span>{opponentProgress}/{questions.length}</span>
-            </div>
-          </div>
-          <div className="w-9 h-9 rounded-xl bg-purple-950 border border-purple-500/40 flex items-center justify-center text-lg box-glow-purple">
-            {opponentPlayer ? opponentPlayer.avatar : '⚡'}
-          </div>
+        {/* Kendi ilerlemen */}
+        <div
+          className="h-1.5 w-full overflow-hidden rounded-full bg-subtle"
+          role="progressbar"
+          aria-label="İlerlemen"
+          aria-valuemin={0}
+          aria-valuemax={total}
+          aria-valuenow={answeredCount}
+        >
+          <div className="h-full rounded-full bg-brand transition-[width] duration-200" style={{ width: `${progressPct}%` }} />
         </div>
       </div>
 
-      {/* Network Error Toast Notice */}
+      {/* Ağ hatası */}
       {feedbackError && (
-        <div className="p-2.5 rounded-xl bg-rose-950/90 border border-rose-500/60 text-rose-200 text-xs font-bold text-center">
-          ⚠️ {feedbackError}
+        <div role="alert" className="flex items-start gap-2 rounded-xl border border-danger/30 bg-danger-soft p-3 text-sm text-danger">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>{feedbackError}</span>
         </div>
       )}
 
       {hasFinishedAll ? (
-        <Card variant="cyan" glow className="w-full text-center py-8 px-4 space-y-3 my-auto">
-          <div className="w-14 h-14 rounded-full bg-cyan-950 border border-cyan-400/50 flex items-center justify-center mx-auto text-cyan-300 text-2xl animate-pulse box-glow-cyan">
-            ✓
-          </div>
-          <h2 className="text-lg font-black uppercase font-heading text-white">
-            TÜM SORULARI TAMAMLADIN!
-          </h2>
-          <p className="text-xs text-slate-300 font-medium">
-            Rakibin soruları tamamlaması ve 90 saniyelik sürenin bitmesi bekleniyor...
-          </p>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-amber-400 text-xs font-bold font-subheading">
-            <Clock className="w-3.5 h-3.5 animate-spin" />
-            <span>Kalan Maç Süresi: {timeLeft}s</span>
-          </div>
+        <Card className="flex flex-col items-center gap-3 py-8 text-center">
+          <LogoSpinner size={48} label="Rakip bekleniyor" />
+          <h2 className="text-lg font-semibold text-ink">Tüm soruları tamamladın</h2>
+          <p className="text-sm text-ink-soft">Rakibin soruları tamamlaması ya da sürenin dolması bekleniyor.</p>
+          <Badge variant="neutral">
+            <span className="tabular">Kalan süre: {timeLeft}s</span>
+          </Badge>
         </Card>
       ) : (
         <>
-          {/* Progress & Category Banner */}
-          <div className="flex items-center justify-between px-1">
-            <Badge variant="cyan" size="sm" icon={<Zap className="w-3 h-3 text-cyan-400" />}>
+          {/* Soru numarası + kategori */}
+          <div className="flex items-center justify-between gap-2">
+            <span className="tabular text-sm font-medium text-ink-soft">
+              Soru {currentQuestionIndex + 1} / {questions.length}
+            </span>
+            <Badge variant="neutral" size="sm">
               {categoryLabel(currentQ?.category || 'genel')}
             </Badge>
-            <span className="text-xs font-bold font-heading text-slate-400">
-              SORU <span className="text-cyan-400">{currentQuestionIndex + 1}</span> / {questions.length}
-            </span>
           </div>
 
-          {/* Main Question Card */}
-          <Card variant="cyan" glow className="w-full space-y-3 min-h-[140px] flex flex-col justify-center">
-            <p className="text-base sm:text-lg font-bold text-white leading-snug font-sans">
-              {currentQ?.question}
-            </p>
+          {/* Soru kartı */}
+          <Card className="flex min-h-30 flex-col justify-center">
+            <p className="text-lg font-semibold leading-snug text-ink">{currentQ?.question}</p>
           </Card>
 
-          {/* Options Grid */}
-          <div className="grid grid-cols-1 gap-2.5 w-full pt-1">
+          {/* Şıklar */}
+          <div className="flex w-full flex-col gap-2.5">
             {currentQ?.options.map((optionText, idx) => {
               const isSelected = selectedOption === idx;
 
@@ -269,47 +278,46 @@ export const QuizScreen: React.FC = () => {
                 }
               }
 
-              let optionStyle =
-                "bg-slate-900/80 border-slate-800 text-slate-200 hover:bg-slate-800/80 hover:border-slate-700";
+              let optionStyle = 'bg-surface border-line text-ink hover:border-line-strong hover:bg-subtle';
+              let letterStyle = 'bg-subtle text-ink-soft';
 
               if (questionState === 'FEEDBACK') {
                 if (isCorrectHighlight) {
-                  optionStyle = "bg-emerald-950/90 border-emerald-500 text-emerald-200 box-glow-cyan font-bold scale-[1.01]";
+                  optionStyle = 'bg-success-soft border-success text-ink font-semibold';
+                  letterStyle = 'bg-success text-white';
                 } else if (isWrongHighlight) {
-                  optionStyle = "bg-rose-950/90 border-rose-500 text-rose-200 box-glow-purple font-bold";
+                  optionStyle = 'bg-danger-soft border-danger text-ink font-semibold';
+                  letterStyle = 'bg-danger text-white';
                 } else {
-                  optionStyle = "bg-slate-950/40 border-slate-900 text-slate-600 opacity-40";
+                  optionStyle = 'bg-surface border-line text-muted opacity-60';
                 }
               } else if (questionState === 'SUBMITTING' && isSelected) {
-                optionStyle = "bg-cyan-950 border-cyan-400 text-cyan-200 animate-pulse font-bold";
+                optionStyle = 'bg-brand-soft border-brand text-ink font-semibold';
+                letterStyle = 'bg-brand text-white';
               }
 
               return (
-                <motion.button
+                <button
+                  type="button"
                   key={`${currentQ.id}_${idx}`}
-                  whileTap={{ scale: questionState !== 'IDLE' ? 1 : 0.98 }}
                   onClick={() => handleSelectOption(idx)}
                   disabled={questionState !== 'IDLE'}
-                  className={`relative flex items-center justify-between p-3.5 rounded-xl border text-left transition-all duration-200 group ${optionStyle}`}
+                  className={`flex min-h-13 w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors duration-150 enabled:cursor-pointer enabled:active:bg-subtle disabled:cursor-default ${optionStyle}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="w-7 h-7 rounded-lg bg-slate-950 border border-slate-700 flex items-center justify-center font-heading text-xs font-bold text-cyan-400 group-hover:border-cyan-500">
-                      {optionLabels[idx]}
-                    </span>
-                    <span className="text-sm font-semibold font-sans">{optionText}</span>
-                  </div>
+                  <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-semibold transition-colors duration-150 ${letterStyle}`}
+                  >
+                    {optionLabels[idx]}
+                  </span>
+                  <span className="min-w-0 flex-1 break-words text-[15px]">{optionText}</span>
 
                   {questionState === 'FEEDBACK' && isCorrectHighlight && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    </motion.div>
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-success" aria-label="Doğru cevap" />
                   )}
                   {questionState === 'FEEDBACK' && isWrongHighlight && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                      <XCircle className="w-5 h-5 text-rose-400" />
-                    </motion.div>
+                    <XCircle className="h-5 w-5 shrink-0 text-danger" aria-label="Yanlış cevap" />
                   )}
-                </motion.button>
+                </button>
               );
             })}
           </div>

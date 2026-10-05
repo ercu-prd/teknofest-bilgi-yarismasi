@@ -59,14 +59,14 @@ const setup = (overrides: Record<string, unknown> = {}) => {
 describe('ResultScreen', () => {
   it('kazananı ve doğru sayısını ayarlardaki soru sayısıyla gösterir', async () => {
     setup();
-    expect(screen.getByText('ZAFER SENİN!')).toBeInTheDocument();
+    expect(screen.getByText('Kazandın')).toBeInTheDocument();
     expect(screen.getByText('3 / 10')).toBeInTheDocument();
     await screen.findByText('Suyun formülü?');
   });
 
   it('rövanş isteği gönderir', async () => {
     const { requestRematch } = setup();
-    fireEvent.click(screen.getByText('RÖVANŞ İSTE'));
+    fireEvent.click(screen.getByText('Rövanş iste'));
     expect(requestRematch).toHaveBeenCalledWith(true);
     await screen.findByText('Suyun formülü?');
   });
@@ -74,14 +74,14 @@ describe('ResultScreen', () => {
   it('rakip rövanş istediyse kabul butonu gösterir', async () => {
     setup({ opponentPlayer: player('Ayşe', { wantsRematch: true }) });
     expect(screen.getByText(/Ayşe rövanş istiyor/)).toBeInTheDocument();
-    expect(screen.getByText('RÖVANŞI KABUL ET')).toBeInTheDocument();
+    expect(screen.getByText('Rövanşı kabul et')).toBeInTheDocument();
     await screen.findByText('Suyun formülü?');
   });
 
   it('istek gönderildiyse bekleme durumu ve geri çekme gösterir', async () => {
     const { requestRematch } = setup({ myPlayer: player('Ben', { wantsRematch: true }) });
     expect(screen.getByText(/Ayşe bekleniyor/)).toBeInTheDocument();
-    fireEvent.click(screen.getByText('İsteği Geri Çek'));
+    fireEvent.click(screen.getByText('İsteği geri çek'));
     expect(requestRematch).toHaveBeenCalledWith(false);
     await screen.findByText('Suyun formülü?');
   });
@@ -89,15 +89,15 @@ describe('ResultScreen', () => {
   it('rakip ayrıldıysa yeni rakip bekleme seçeneği sunar', async () => {
     const { returnToLobby } = setup({ opponentPlayer: null });
     expect(screen.getByText(/Rakibin odadan ayrıldı\./)).toBeInTheDocument();
-    fireEvent.click(screen.getByText('YENİ RAKİP BEKLE'));
+    fireEvent.click(screen.getByText('Yeni rakip bekle'));
     expect(returnToLobby).toHaveBeenCalled();
     await screen.findByText('Suyun formülü?');
   });
 
   it('turnuva maçında rövanş yerine turnuvaya dönüş sunar', async () => {
     const { leaveRoom } = setup({ roomTournamentCode: '424242' });
-    expect(screen.queryByText('RÖVANŞ İSTE')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText('TURNUVAYA DÖN'));
+    expect(screen.queryByText('Rövanş iste')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Turnuvaya dön'));
     expect(leaveRoom).toHaveBeenCalled();
     await screen.findByText('Suyun formülü?');
   });
@@ -107,19 +107,19 @@ describe('ResultScreen', () => {
     const question = await screen.findByText('Suyun formülü?');
     fireEvent.click(question);
     expect(screen.getByText('Su iki hidrojen ve bir oksijenden oluşur.')).toBeInTheDocument();
-    expect(screen.getByText('B) H2O').className).toMatch(/emerald/);
-    expect(screen.getByText('A) CO2').className).toMatch(/rose/);
+    expect(screen.getByText('B) H2O').className).toMatch(/success/);
+    expect(screen.getByText('A) CO2').className).toMatch(/danger/);
   });
 
   it('inceleme yüklenemezse bölüm gizlenir', async () => {
     setup({ fetchMatchReview: vi.fn().mockResolvedValue(null) });
     await act(async () => {});
-    expect(screen.queryByText('Soru Soru Özet')).not.toBeInTheDocument();
+    expect(screen.queryByText('Soru soru özet')).not.toBeInTheDocument();
   });
 
   it('ana menü butonu odadan çıkar', async () => {
     const { leaveRoom } = setup();
-    fireEvent.click(screen.getByText('ANA MENÜYE DÖN'));
+    fireEvent.click(screen.getByText('Ana menü'));
     expect(leaveRoom).toHaveBeenCalled();
     await screen.findByText('Suyun formülü?');
   });
