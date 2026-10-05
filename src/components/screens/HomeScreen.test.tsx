@@ -34,14 +34,14 @@ afterEach(() => {
 describe('HomeScreen', () => {
   it('sunucu ayarlarındaki süre ve soru sayısını gösterir', () => {
     setup();
-    expect(screen.getByText('75 Saniye')).toBeInTheDocument();
-    expect(screen.getByText('8 Soru')).toBeInTheDocument();
+    expect(screen.getByText('75 saniye')).toBeInTheDocument();
+    expect(screen.getByText('8 soru')).toBeInTheDocument();
   });
 
   it('hızlı eşleşmeyi seçili isim ve avatarla başlatır', async () => {
     const { startQuickMatch } = setup();
     await act(async () => {
-      fireEvent.click(screen.getByText('HIZLI EŞLEŞ'));
+      fireEvent.click(screen.getByRole('button', { name: 'Hızlı eşleş' }));
     });
     expect(startQuickMatch).toHaveBeenCalledWith('Arda', 'pilot');
   });
@@ -49,7 +49,7 @@ describe('HomeScreen', () => {
   it('isim boşsa hızlı eşleşme başlamaz', async () => {
     const { startQuickMatch } = setup({ player1: { name: '', avatar: '🚀' } });
     await act(async () => {
-      fireEvent.click(screen.getByText('HIZLI EŞLEŞ'));
+      fireEvent.click(screen.getByRole('button', { name: 'Hızlı eşleş' }));
     });
     expect(startQuickMatch).not.toHaveBeenCalled();
     expect(screen.getByText('Lütfen takma adınızı girin!')).toBeInTheDocument();
@@ -57,9 +57,9 @@ describe('HomeScreen', () => {
 
   it('turnuva ve liderlik ekranlarına yönlendirir', () => {
     const { setScreen } = setup();
-    fireEvent.click(screen.getByText('TURNUVA'));
+    fireEvent.click(screen.getByRole('button', { name: 'Turnuva' }));
     expect(setScreen).toHaveBeenCalledWith('TOURNAMENT');
-    fireEvent.click(screen.getByText('LİDERLİK'));
+    fireEvent.click(screen.getByRole('button', { name: 'Liderlik' }));
     expect(setScreen).toHaveBeenCalledWith('LEADERBOARD');
   });
 
@@ -69,7 +69,7 @@ describe('HomeScreen', () => {
     const input = screen.getByLabelText('Oda kodu') as HTMLInputElement;
     expect(input.value).toBe('654321');
     await act(async () => {
-      fireEvent.click(screen.getByText('KATIL'));
+      fireEvent.click(screen.getByRole('button', { name: 'Katıl' }));
     });
     expect(joinRoom).toHaveBeenCalledWith('654321', 'Arda', 'pilot');
     expect(window.location.search).toBe('');
@@ -84,7 +84,7 @@ describe('HomeScreen', () => {
 
   it('oda kodu alanı yalnızca rakam kabul eder', () => {
     setup();
-    fireEvent.click(screen.getByText('ODAYA KATIL'));
+    fireEvent.click(screen.getByRole('button', { name: 'Odaya katıl' }));
     const input = screen.getByLabelText('Oda kodu') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '12ab34-5678' } });
     expect(input.value).toBe('123456');
@@ -92,6 +92,6 @@ describe('HomeScreen', () => {
 
   it('işlem sürerken oda butonları devre dışı', () => {
     setup({ isBusy: true });
-    expect(screen.getByText('ODA KUR').closest('button')).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Oda kur' })).toBeDisabled();
   });
 });

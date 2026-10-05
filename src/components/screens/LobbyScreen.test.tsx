@@ -48,7 +48,7 @@ describe('LobbyScreen', () => {
   it('oda kodunu kopyalar (HTTPS dışında da çalışan yardımcı ile)', async () => {
     setup();
     await act(async () => {
-      fireEvent.click(screen.getByTitle('Kodu Kopyala'));
+      fireEvent.click(screen.getByRole('button', { name: 'Kodu kopyala' }));
     });
     expect(clip.copyText).toHaveBeenCalledWith('123456');
   });
@@ -56,7 +56,7 @@ describe('LobbyScreen', () => {
   it('davet linkini oda kodu parametresiyle paylaşır', async () => {
     setup();
     await act(async () => {
-      fireEvent.click(screen.getByText('Davet Linki'));
+      fireEvent.click(screen.getByRole('button', { name: 'Davet linki' }));
     });
     expect(clip.shareOrCopy).toHaveBeenCalledWith(expect.objectContaining({ url: expect.stringContaining('?room=123456') }));
     expect(screen.getByText('Davet linki kopyalandı')).toBeInTheDocument();
@@ -65,9 +65,9 @@ describe('LobbyScreen', () => {
   it('QR kodu açıp kapatır', () => {
     setup();
     expect(screen.queryByAltText('qr')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText('QR Göster'));
+    fireEvent.click(screen.getByRole('button', { name: 'QR göster' }));
     expect(screen.getByAltText('qr').getAttribute('data-url')).toContain('?room=123456');
-    fireEvent.click(screen.getByText('QR Gizle'));
+    fireEvent.click(screen.getByRole('button', { name: 'QR gizle' }));
     expect(screen.queryByAltText('qr')).not.toBeInTheDocument();
   });
 
@@ -84,19 +84,20 @@ describe('LobbyScreen', () => {
 
   it('ana menü butonu odadan çıkar', () => {
     const { leaveRoom } = setup();
-    fireEvent.click(screen.getByText(/Ana Menü/));
+    fireEvent.click(screen.getByRole('button', { name: 'Ana menü' }));
     expect(leaveRoom).toHaveBeenCalled();
   });
 
   it('turnuva maçında oda kodu yerine turnuva bilgisi gösterir', () => {
     setup({ roomTournamentCode: '424242' });
-    expect(screen.getByText('TURNUVA MAÇI')).toBeInTheDocument();
-    expect(screen.queryByText('Davet Linki')).not.toBeInTheDocument();
-    expect(screen.getByText(/Hükmen Mağlubiyet/)).toBeInTheDocument();
+    expect(screen.getByText('Turnuva maçı')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Davet linki' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Turnuvaya dön' })).toBeInTheDocument();
+    expect(screen.getByText(/hükmen mağlup/)).toBeInTheDocument();
   });
 
   it('tek oyuncu varken hazır butonu devre dışı', () => {
     setup({ player2: null, opponentPlayer: null });
-    expect(screen.getByText('HAZIRIM').closest('button')).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Hazırım' })).toBeDisabled();
   });
 });

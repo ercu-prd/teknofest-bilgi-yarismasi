@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { Logo } from '../ui/Logo';
 import { AvatarSelector } from '../ui/AvatarSelector';
-import { Users, PlusCircle, ArrowRight, Gamepad2, AlertCircle, Zap, Trophy, BarChart3, Loader2 } from 'lucide-react';
+import { Users, Plus, ArrowRight, AlertCircle, Zap, Trophy, BarChart3, Loader2, X } from 'lucide-react';
 import { AVATAR_OPTIONS } from '../../data/avatars';
 import { APP_CONFIG } from '../../config/appConfig';
 import {
@@ -104,206 +105,161 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.3 }}
-      className="flex flex-col items-center justify-center space-y-5 w-full max-w-md mx-auto py-2 px-1"
+      transition={{ duration: 0.2 }}
+      className="flex w-full flex-col gap-4"
     >
-      {/* Title & Badge Banner */}
-      <div className="text-center space-y-3">
-        <motion.div
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-bold font-subheading box-glow-cyan"
-        >
-          <Gamepad2 className="w-4 h-4 text-cyan-400" />
-          <span>TEKNOFEST ÜNİVERSİTE KULÜBÜ</span>
-        </motion.div>
-
-        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase font-heading text-glow-cyan leading-none">
-          TEKNOFEST <br />
-          <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-purple-400 bg-clip-text text-transparent">
-            BİLGİ YARIŞMASI
-          </span>
-        </h1>
-        <p className="text-xs text-slate-400 font-medium">
-          Milli Teknoloji Hamlesi 1v1 Gerçek Zamanlı Arena
+      {/* Kimlik */}
+      <div className="flex flex-col items-center gap-2 pt-1 text-center">
+        <Logo size={72} />
+        <div className="space-y-1">
+          <p className="font-display text-sm font-bold text-brand">OKÜ TEKNOFEST</p>
+          <h1 className="text-2xl font-bold leading-tight">Bilgi Yarışması</h1>
+          <p className="text-sm text-ink-soft">Arkadaşınla gerçek zamanlı, birebir bilgi düellosu</p>
+        </div>
+        <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-xs text-muted tabular">
+          <span>1v1</span>
+          <span aria-hidden="true">·</span>
+          <span>{settings.questionCount} soru</span>
+          <span aria-hidden="true">·</span>
+          <span>{settings.matchSeconds} saniye</span>
         </p>
       </div>
 
-      {/* Global Error Banner */}
+      {/* Hata */}
       {activeError && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full p-3 rounded-xl bg-rose-950/90 border border-rose-500/60 text-rose-200 text-xs font-bold flex items-center justify-between shadow-lg"
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-xl border border-danger/20 bg-danger-soft py-1 pl-3 pr-1 text-sm text-danger"
         >
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-            <span>{activeError}</span>
-          </div>
+          <AlertCircle className="mt-2.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <span className="min-w-0 flex-1 py-2">{activeError}</span>
           <button
+            type="button"
+            aria-label="Hatayı kapat"
             onClick={() => {
               setLocalErrorMsg('');
               clearError();
             }}
-            className="text-rose-400 hover:text-white ml-2 text-sm"
+            className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg hover:bg-danger/10"
           >
-            ✕
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
-        </motion.div>
+        </div>
       )}
 
-      {/* Main Profile Form Card */}
-      <Card variant="cyan" glow className="w-full space-y-5">
-        {/* Name Input */}
+      {/* Profil */}
+      <Card className="space-y-4">
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold uppercase tracking-wider text-cyan-400 font-subheading flex items-center justify-between">
-            <span>Oyuncu Adı</span>
-            <span className="text-[10px] text-slate-500 lowercase">zorunlu</span>
+          <label htmlFor="player-name" className="block text-sm font-medium text-ink-soft">
+            Takma ad
           </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={nameInput}
-              onChange={handleNameChange}
-              maxLength={APP_CONFIG.playerNameMaxLength}
-              placeholder="Örn: TeknoPilot_34"
-              className="w-full bg-slate-950/80 border border-slate-700 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl px-4 py-3 text-sm font-semibold text-white placeholder-slate-600 outline-none transition-all font-sans"
-            />
-            <span className="absolute right-3 top-3 text-lg select-none">
-              {AVATAR_OPTIONS.find((a) => a.id === selectedAvatarId)?.icon || '🚀'}
-            </span>
-          </div>
+          <input
+            id="player-name"
+            type="text"
+            value={nameInput}
+            onChange={handleNameChange}
+            maxLength={APP_CONFIG.playerNameMaxLength}
+            placeholder="Örn: TeknoPilot_34"
+            autoComplete="nickname"
+            className="h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-base text-ink placeholder:text-muted outline-none transition-colors focus:border-brand focus:ring-1 focus:ring-brand"
+          />
         </div>
 
-        {/* Avatar Selector */}
         <AvatarSelector selectedId={selectedAvatarId} onSelect={handleAvatarSelect} />
-
-        {/* Primary Action Buttons */}
-        <div className="space-y-3 pt-2">
-          <Button
-            variant="cyan"
-            size="lg"
-            fullWidth
-            onClick={() => void handleQuickMatch()}
-            disabled={isBusy}
-            className="group"
-          >
-            <Zap className="w-5 h-5" />
-            <span>HIZLI EŞLEŞ</span>
-          </Button>
-
-          <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" size="md" fullWidth onClick={handleCreateRoom} disabled={isBusy} className="group">
-              {isBusy ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <PlusCircle className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
-              )}
-              <span>ODA KUR</span>
-            </Button>
-            <Button variant="outline" size="md" fullWidth onClick={() => setIsJoinModalOpen(true)} disabled={isBusy}>
-              <Users className="w-4 h-4" />
-              <span>ODAYA KATIL</span>
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="purple"
-              size="md"
-              fullWidth
-              onClick={() => {
-                if (!requireName()) return;
-                clearError();
-                setScreen('TOURNAMENT');
-              }}
-            >
-              <Trophy className="w-4 h-4" />
-              <span>TURNUVA</span>
-            </Button>
-            <Button variant="ghost" size="md" fullWidth onClick={() => setScreen('LEADERBOARD')}>
-              <BarChart3 className="w-4 h-4" />
-              <span>LİDERLİK</span>
-            </Button>
-          </div>
-        </div>
       </Card>
 
-      {/* Info Card / Quick Specs */}
-      <div className="grid grid-cols-3 gap-2 w-full text-center">
-        <div className="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/60 backdrop-blur-sm">
-          <div className="text-cyan-400 text-xs font-bold font-subheading">MODE</div>
-          <div className="text-slate-200 text-xs font-bold">1v1 Düello</div>
+      {/* Eylemler */}
+      <div className="space-y-2">
+        <Button variant="primary" size="lg" fullWidth onClick={() => void handleQuickMatch()} disabled={isBusy}>
+          <Zap className="h-5 w-5" aria-hidden="true" />
+          <span>Hızlı eşleş</span>
+        </Button>
+
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="secondary" fullWidth onClick={handleCreateRoom} disabled={isBusy}>
+            {isBusy ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Plus className="h-4 w-4" aria-hidden="true" />
+            )}
+            <span>Oda kur</span>
+          </Button>
+          <Button variant="secondary" fullWidth onClick={() => setIsJoinModalOpen(true)} disabled={isBusy}>
+            <Users className="h-4 w-4" aria-hidden="true" />
+            <span>Odaya katıl</span>
+          </Button>
         </div>
-        <div className="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/60 backdrop-blur-sm">
-          <div className="text-purple-400 text-xs font-bold font-subheading">SÜRE</div>
-          <div className="text-slate-200 text-xs font-bold">{settings.matchSeconds} Saniye</div>
-        </div>
-        <div className="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/60 backdrop-blur-sm">
-          <div className="text-teal-400 text-xs font-bold font-subheading">SORU</div>
-          <div className="text-slate-200 text-xs font-bold">{settings.questionCount} Soru</div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="ghost"
+            fullWidth
+            onClick={() => {
+              if (!requireName()) return;
+              clearError();
+              setScreen('TOURNAMENT');
+            }}
+          >
+            <Trophy className="h-4 w-4" aria-hidden="true" />
+            <span>Turnuva</span>
+          </Button>
+          <Button variant="ghost" fullWidth onClick={() => setScreen('LEADERBOARD')}>
+            <BarChart3 className="h-4 w-4" aria-hidden="true" />
+            <span>Liderlik</span>
+          </Button>
         </div>
       </div>
 
-      {/* Join Room Modal Drawer */}
+      {/* Odaya katıl: mobilde alttan açılan pencere */}
       {isJoinModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 sm:items-center sm:p-4">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="w-full max-w-sm cyber-card rounded-2xl p-6 border-cyan-500/50 space-y-4 box-glow-cyan"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="join-room-title"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="safe-bottom w-full max-w-md space-y-4 rounded-t-2xl border border-line bg-surface px-4 pt-4 shadow-raised sm:rounded-2xl sm:pb-4"
           >
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-lg font-bold font-heading text-cyan-300 flex items-center gap-2">
-                <Users className="w-5 h-5 text-cyan-400" />
-                ODAYA KATIL
+            <div className="mx-auto h-1 w-10 rounded-full bg-line sm:hidden" aria-hidden="true" />
+            <div className="flex items-center justify-between gap-2">
+              <h2 id="join-room-title" className="text-base font-semibold">
+                Odaya katıl
               </h2>
               <button
+                type="button"
+                aria-label="Kapat"
                 onClick={() => setIsJoinModalOpen(false)}
-                className="text-slate-400 hover:text-white text-lg px-2"
+                className="-mr-2 inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-muted hover:bg-subtle hover:text-ink"
               >
-                ✕
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-300">
-              Arkadaşınızın oluşturduğu 6 haneli oda kodunu girin:
-            </p>
+            <p className="text-sm text-ink-soft">Arkadaşının paylaştığı 6 haneli oda kodunu gir.</p>
 
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={joinCodeInput}
-                onChange={(e) => setJoinCodeInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                inputMode="numeric"
-                autoComplete="off"
-                aria-label="Oda kodu"
-                placeholder="Örn: 849204"
-                maxLength={6}
-                className="w-full text-center tracking-widest text-xl font-bold font-heading uppercase bg-slate-950 border border-cyan-500/50 focus:border-cyan-400 rounded-xl py-3 text-cyan-300 outline-none placeholder-slate-600"
-              />
-            </div>
+            <input
+              type="text"
+              value={joinCodeInput}
+              onChange={(e) => setJoinCodeInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              inputMode="numeric"
+              autoComplete="off"
+              aria-label="Oda kodu"
+              placeholder="000000"
+              maxLength={6}
+              className="h-16 w-full rounded-xl border border-line-strong bg-surface text-center font-display text-4xl font-bold tracking-[0.2em] text-ink tabular placeholder:text-line-strong outline-none transition-colors focus:border-brand focus:ring-1 focus:ring-brand"
+            />
 
-            <div className="flex gap-2 pt-2">
-              <Button
-                variant="ghost"
-                fullWidth
-                onClick={() => setIsJoinModalOpen(false)}
-              >
-                İPTAL
+            <div className="grid grid-cols-2 gap-2 pb-1">
+              <Button variant="secondary" size="lg" fullWidth onClick={() => setIsJoinModalOpen(false)}>
+                Vazgeç
               </Button>
-              <Button
-                variant="cyan"
-                fullWidth
-                onClick={handleJoinRoomSubmit}
-                disabled={isBusy}
-              >
-                <span>KATIL</span>
-                <ArrowRight className="w-4 h-4" />
+              <Button variant="primary" size="lg" fullWidth onClick={handleJoinRoomSubmit} disabled={isBusy}>
+                <span>Katıl</span>
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
           </motion.div>

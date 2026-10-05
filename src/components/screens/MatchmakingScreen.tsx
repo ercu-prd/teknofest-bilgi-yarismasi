@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Lightbulb, Radar, X } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { LogoSpinner } from '../ui/LogoSpinner';
 
 /** Bu süreden sonra "kimse aramıyor olabilir" ipucu gösterilir. */
 export const MATCHMAKING_HINT_AFTER_SECONDS = 60;
@@ -43,46 +44,17 @@ export const MatchmakingScreen: React.FC = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      className="flex flex-col items-center justify-center space-y-6 w-full max-w-md mx-auto py-4 px-1"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      className="flex w-full flex-col items-center gap-6 pt-8"
     >
-      <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-bold font-subheading box-glow-cyan">
-        <Radar className="w-4 h-4 text-cyan-400" /> HIZLI EŞLEŞME
-      </span>
+      <LogoSpinner size={96} label="Rakip aranıyor" />
 
-      {/* Radar / pulse */}
-      <div className="relative w-56 h-56 flex items-center justify-center" aria-hidden="true">
-        {[0, 1, 2].map((i) => (
-          <motion.span
-            key={i}
-            className="absolute inset-0 rounded-full border-2 border-cyan-400/60"
-            initial={{ scale: 0.35, opacity: 0.8 }}
-            animate={{ scale: 1, opacity: 0 }}
-            transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.8, ease: 'easeOut' }}
-          />
-        ))}
-        <div className="absolute inset-6 rounded-full border border-slate-700/60" />
-        <div className="absolute inset-14 rounded-full border border-slate-700/40" />
-        <motion.div
-          className="absolute inset-0 rounded-full"
-          style={{ background: 'conic-gradient(from 0deg, rgba(34,211,238,0.35), transparent 25%)' }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-        />
-        <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-4xl shadow-lg box-glow-cyan">
-          {myPlayer.avatar}
-        </div>
-      </div>
-
-      <div className="text-center space-y-1.5">
-        <h2 className="text-sm font-bold text-white font-subheading truncate max-w-[18rem]">{myPlayer.name}</h2>
-        <p className="text-lg font-black uppercase tracking-wider text-cyan-300 font-heading text-glow-cyan">
-          Rakip aranıyor…
-        </p>
+      <div className="space-y-1 text-center">
+        <h2 className="text-xl font-semibold">Rakip aranıyor…</h2>
         <p
-          className="text-3xl font-black font-heading tabular-nums text-white"
+          className="font-display text-4xl font-bold text-ink tabular"
           data-testid="matchmaking-elapsed"
           aria-label="Geçen süre"
         >
@@ -90,19 +62,31 @@ export const MatchmakingScreen: React.FC = () => {
         </p>
       </div>
 
+      <div className="flex max-w-full items-center gap-2 rounded-full border border-line bg-surface py-1.5 pl-1.5 pr-4">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-lg">
+          {myPlayer.avatar}
+        </span>
+        <span className="truncate text-sm font-medium text-ink">{myPlayer.name}</span>
+      </div>
+
       {elapsed >= MATCHMAKING_HINT_AFTER_SECONDS && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-          <Card variant="purple" className="w-full p-4!">
-            <p role="status" className="flex items-start gap-2 text-xs text-slate-300 font-medium">
-              <Lightbulb className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="w-full"
+        >
+          <Card variant="muted" padding="sm">
+            <p role="status" className="flex items-start gap-2 text-sm text-ink-soft">
+              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
               Şu an kimse aramıyor olabilir; bir arkadaşına oda kodu göndermeyi dene.
             </p>
           </Card>
         </motion.div>
       )}
 
-      <Button variant="ghost" fullWidth onClick={() => void handleCancel()} disabled={cancelling}>
-        <X className="w-4 h-4" /> İptal
+      <Button variant="secondary" size="lg" fullWidth onClick={() => void handleCancel()} disabled={cancelling}>
+        İptal
       </Button>
     </motion.div>
   );

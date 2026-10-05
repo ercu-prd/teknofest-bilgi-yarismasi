@@ -8,7 +8,54 @@ import { RoomQrCode } from '../ui/RoomQrCode';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
-import { Copy, Check, UserCheck, ArrowLeft, Loader2, Sparkles, UserPlus, Share2, QrCode, WifiOff, Trophy } from 'lucide-react';
+import { LogoSpinner } from '../ui/LogoSpinner';
+import { Copy, Check, ArrowLeft, UserPlus, Share2, QrCode, WifiOff, Trophy } from 'lucide-react';
+import type { Player } from '../../types/game';
+
+interface PlayerRowProps {
+  player: Player;
+  role: string;
+  isMe: boolean;
+  disconnected: boolean;
+}
+
+const PlayerRow: React.FC<PlayerRowProps> = ({ player, role, isMe, disconnected }) => (
+  <Card variant={isMe ? 'brand' : 'default'} padding="sm" className="flex items-center gap-3">
+    <div
+      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl ${
+        isMe ? 'bg-surface ring-1 ring-brand-line' : 'bg-subtle'
+      }`}
+      aria-hidden="true"
+    >
+      {player.avatar}
+    </div>
+    <div className="min-w-0 flex-1">
+      <h3 className={`truncate text-[15px] font-semibold ${isMe ? 'text-brand' : 'text-ink'}`}>
+        {player.name}
+        {isMe ? ' (Sen)' : ''}
+      </h3>
+      <p className="text-xs text-muted">{role}</p>
+    </div>
+    <div className="flex shrink-0 flex-col items-end gap-1">
+      {disconnected && (
+        <span title="Son 45 saniyedir sinyal yok">
+          <Badge variant="danger" size="sm" icon={<WifiOff className="h-3 w-3" />}>
+            Bağlantı koptu
+          </Badge>
+        </span>
+      )}
+      {player.isReady ? (
+        <Badge variant="success" size="sm" icon={<Check className="h-3.5 w-3.5" strokeWidth={2.5} />}>
+          Hazır
+        </Badge>
+      ) : (
+        <Badge variant="neutral" size="sm">
+          Bekliyor
+        </Badge>
+      )}
+    </div>
+  </Card>
+);
 
 export const LobbyScreen: React.FC = () => {
   const {
@@ -30,7 +77,7 @@ export const LobbyScreen: React.FC = () => {
 
   const handleShare = async () => {
     const result = await shareOrCopy({
-      title: 'TEKNOFEST 1v1 Bilgi Arenası',
+      title: 'OKÜ TEKNOFEST Bilgi Yarışması',
       text: `Benimle 1v1 bilgi düellosuna gel! Oda kodu: ${roomCode}`,
       url: roomLink,
     });
@@ -57,224 +104,132 @@ export const LobbyScreen: React.FC = () => {
   const bothReady = Boolean(player1.isReady && player2 && player2.isReady);
   const onlyOneReady = (player1.isReady && !player2?.isReady) || (!player1.isReady && player2?.isReady);
 
+  const statusMessage = !hasTwoPlayers
+    ? 'İkinci oyuncunun katılması bekleniyor.'
+    : bothReady
+      ? 'İkiniz de hazırsınız, maç başlıyor.'
+      : onlyOneReady
+        ? myPlayerObj?.isReady
+          ? 'Rakibinin hazır olması bekleniyor.'
+          : 'Rakibin hazır. Başlamak için "Hazırım"a bas.'
+        : 'İkiniz de "Hazırım" deyince maç başlar.';
+  const showStatusSpinner = !hasTwoPlayers || bothReady;
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.3 }}
-      className="flex flex-col items-center justify-center space-y-4 w-full max-w-md mx-auto py-2 px-1"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      className="flex w-full flex-col gap-4"
     >
-      {/* Navigation Top Action */}
-      <div className="flex items-center justify-between w-full">
-        <button
-          onClick={() => void leaveRoom()}
-          className="flex items-center gap-1.5 text-xs font-bold font-subheading text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" /> {roomTournamentCode ? 'Turnuvaya Dön (Hükmen Mağlubiyet)' : 'Ana Menü'}
-        </button>
-        <span className="text-xs font-bold font-subheading text-cyan-400/80 uppercase">
-          {roomTournamentCode ? 'TURNUVA MAÇI' : 'LOBİ BEKLEME ALANI'}
-        </span>
+      <div>
+        <Button variant="ghost" className="-ml-2" onClick={() => void leaveRoom()}>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <span>{roomTournamentCode ? 'Turnuvaya dön' : 'Ana menü'}</span>
+        </Button>
       </div>
 
       {errorMsg && (
-        <p role="alert" className="w-full text-xs text-rose-300 text-center font-semibold">{errorMsg}</p>
+        <p role="alert" className="rounded-xl border border-danger/20 bg-danger-soft px-3 py-2.5 text-sm text-danger">
+          {errorMsg}
+        </p>
       )}
 
       {roomTournamentCode ? (
-        <Card variant="purple" glow className="w-full text-center space-y-1.5">
-          <Trophy className="w-6 h-6 text-amber-400 mx-auto" />
-          <p className="text-xs text-slate-300 font-medium">
-            Turnuva eşleşmen hazır. İkiniz de <span className="text-cyan-400 font-bold">HAZIRIM</span> deyince maç başlar.
-          </p>
+        <Card variant="muted" className="flex items-start gap-3">
+          <Trophy className="mt-0.5 h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+          <div className="min-w-0 space-y-0.5">
+            <h2 className="text-base font-semibold">Turnuva maçı</h2>
+            <p className="text-sm text-ink-soft">
+              Eşleşmen hazır. Odadan ayrılırsan hükmen mağlup sayılırsın.
+            </p>
+          </div>
         </Card>
       ) : (
-      <Card variant="cyan" glow className="w-full text-center space-y-2.5">
-        <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 font-subheading">
-          ODA KODU (6 HANELİ)
-        </span>
-
-        <div className="flex items-center justify-center gap-3">
-          <div className="text-3xl font-black font-heading tracking-widest text-cyan-300 text-glow-cyan bg-slate-950/80 px-6 py-2.5 rounded-xl border border-cyan-500/40">
-            {roomCode}
+        <Card className="space-y-3 text-center">
+          <p className="text-sm font-medium text-ink-soft">Oda kodu</p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="font-display text-5xl font-bold leading-none tracking-[0.08em] text-ink tabular">
+              {roomCode}
+            </span>
+            <button
+              type="button"
+              onClick={handleCopyCode}
+              aria-label="Kodu kopyala"
+              title="Kodu kopyala"
+              className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-line text-ink-soft transition-colors hover:bg-subtle hover:text-ink"
+            >
+              {copied ? (
+                <Check className="h-5 w-5 text-success" aria-hidden="true" />
+              ) : (
+                <Copy className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
           </div>
-          <button
-            onClick={handleCopyCode}
-            className="p-3 rounded-xl bg-cyan-950 border border-cyan-500/50 text-cyan-300 hover:bg-cyan-900 transition-all box-glow-cyan cursor-pointer"
-            title="Kodu Kopyala"
-          >
-            {copied ? <Check className="w-5 h-5 text-emerald-400" /> : <Copy className="w-5 h-5" />}
-          </button>
-        </div>
+          <p className="text-xs text-muted">Rakibinin katılması için bu kodu paylaş.</p>
 
-        <p className="text-[11px] text-slate-400 font-medium">
-          Diğer oyuncunun odaya katılması için bu 6 haneli kodu paylaşın.
-        </p>
-
-        <div className="flex items-center justify-center gap-2">
-          <button
-            onClick={() => void handleShare()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-[11px] font-bold hover:border-cyan-500/60 cursor-pointer"
-          >
-            <Share2 className="w-3.5 h-3.5" /> Davet Linki
-          </button>
-          <button
-            onClick={() => setShowQr((v) => !v)}
-            aria-expanded={showQr}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-[11px] font-bold hover:border-cyan-500/60 cursor-pointer"
-          >
-            <QrCode className="w-3.5 h-3.5" /> {showQr ? 'QR Gizle' : 'QR Göster'}
-          </button>
-        </div>
-        {shareNote && <p className="text-[11px] text-emerald-400 font-bold">{shareNote}</p>}
-        {showQr && (
-          <div className="flex justify-center pt-1">
-            <RoomQrCode url={roomLink} size={176} />
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" fullWidth onClick={() => void handleShare()}>
+              <Share2 className="h-4 w-4" aria-hidden="true" />
+              <span>Davet linki</span>
+            </Button>
+            <Button variant="secondary" fullWidth onClick={() => setShowQr((v) => !v)} aria-expanded={showQr}>
+              <QrCode className="h-4 w-4" aria-hidden="true" />
+              <span>{showQr ? 'QR gizle' : 'QR göster'}</span>
+            </Button>
           </div>
-        )}
-      </Card>
+          {shareNote && (
+            <p role="status" className="text-xs font-medium text-success">
+              {shareNote}
+            </p>
+          )}
+          {showQr && (
+            <div className="flex justify-center pt-1">
+              <RoomQrCode url={roomLink} size={176} />
+            </div>
+          )}
+        </Card>
       )}
 
-      {/* Players Showdown Preview Slot Cards */}
-      <div className="grid grid-cols-2 gap-3 w-full">
-        {/* Player 1 Card (Host) */}
-        <div
-          className={`cyber-card rounded-2xl p-4 flex flex-col items-center space-y-3 border transition-all ${
-            player1.isReady
-              ? 'border-emerald-500/60 bg-emerald-950/30 shadow-lg box-glow-cyan'
-              : 'border-cyan-500/40 bg-slate-900/60'
-          }`}
-        >
-          <Badge variant="cyan" size="sm">
-            Ev Sahibi
-          </Badge>
-          {!isMePlayer1 && !opponentOnline && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-300" title="Son 45 saniyedir sinyal yok">
-              <WifiOff className="w-3 h-3" /> Bağlantı koptu
-            </span>
-          )}
-
-          <div className="relative">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-3xl shadow-lg box-glow-cyan">
-              {player1.avatar}
-            </div>
-            {player1.isReady && (
-              <span className="absolute -bottom-1 -right-1 p-1 bg-emerald-500 text-black rounded-full shadow-md">
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-              </span>
-            )}
-          </div>
-
-          <div className="text-center w-full">
-            <h3 className="text-sm font-bold text-white truncate font-subheading">
-              {player1.name} {isMePlayer1 && '(Sen)'}
-            </h3>
-            <span
-              className={`text-[11px] font-bold uppercase tracking-wider block mt-1 ${
-                player1.isReady ? 'text-emerald-400 font-extrabold' : 'text-amber-400'
-              }`}
-            >
-              {player1.isReady ? '✓ HAZIR' : 'BEKLİYOR'}
-            </span>
-          </div>
-        </div>
-
-        {/* Player 2 Card (Guest / Opponent) */}
+      {/* Oyuncular */}
+      <div className="space-y-2">
+        <PlayerRow
+          player={player1}
+          role="Ev sahibi"
+          isMe={isMePlayer1}
+          disconnected={!isMePlayer1 && !opponentOnline}
+        />
         {player2 && player2.id ? (
-          <div
-            className={`cyber-card rounded-2xl p-4 flex flex-col items-center space-y-3 border transition-all ${
-              player2.isReady
-                ? 'border-emerald-500/60 bg-emerald-950/30 shadow-lg box-glow-purple'
-                : 'border-purple-500/40 bg-slate-900/60'
-            }`}
-          >
-            <Badge variant="purple" size="sm">
-              Katılımcı
-            </Badge>
-            {isMePlayer1 && !opponentOnline && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-300" title="Son 45 saniyedir sinyal yok">
-                <WifiOff className="w-3 h-3" /> Bağlantı koptu
-              </span>
-            )}
-
-            <div className="relative">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-3xl shadow-lg box-glow-purple">
-                {player2.avatar}
-              </div>
-              {player2.isReady && (
-                <span className="absolute -bottom-1 -right-1 p-1 bg-emerald-500 text-black rounded-full shadow-md">
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                </span>
-              )}
-            </div>
-
-            <div className="text-center w-full">
-              <h3 className="text-sm font-bold text-white truncate font-subheading">
-                {player2.name} {!isMePlayer1 && '(Sen)'}
-              </h3>
-              <span
-                className={`text-[11px] font-bold uppercase tracking-wider block mt-1 ${
-                  player2.isReady ? 'text-emerald-400 font-extrabold' : 'text-amber-400'
-                }`}
-              >
-                {player2.isReady ? '✓ HAZIR' : 'BEKLİYOR'}
-              </span>
-            </div>
-          </div>
+          <PlayerRow
+            player={player2}
+            role="Katılımcı"
+            isMe={!isMePlayer1}
+            disconnected={isMePlayer1 && !opponentOnline}
+          />
         ) : (
-          <div className="cyber-card rounded-2xl p-4 flex flex-col items-center justify-center space-y-2 border border-dashed border-slate-800 bg-slate-950/30 text-center">
-            <div className="w-12 h-12 rounded-full border border-slate-800 flex items-center justify-center text-slate-600 animate-pulse">
-              <UserPlus className="w-6 h-6" />
+          <div className="flex items-center gap-3 rounded-2xl border border-dashed border-line-strong p-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-subtle text-muted">
+              <UserPlus className="h-5 w-5" aria-hidden="true" />
             </div>
-            <span className="text-xs font-bold text-slate-500 font-subheading">
-              2. Oyuncu Katılımı Bekleniyor...
-            </span>
+            <span className="text-[15px] font-medium text-muted">Rakip bekleniyor</span>
           </div>
         )}
       </div>
 
-      {/* Status Alert Banner */}
-      <div className="w-full text-center">
-        {!hasTwoPlayers ? (
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 text-xs font-medium flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
-            <span>Odada 2 gerçek oyuncu olması bekleniyor...</span>
-          </div>
-        ) : bothReady ? (
-          <motion.div
-            initial={{ scale: 0.95 }}
-            animate={{ scale: 1 }}
-            className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs font-extrabold font-subheading flex items-center justify-center gap-2 box-glow-cyan"
-          >
-            <Sparkles className="w-4 h-4 text-emerald-400 animate-bounce" />
-            <span>HER İKİ OYUNCU DA HAZIR! MAÇ BAŞLIYOR...</span>
-          </motion.div>
-        ) : onlyOneReady ? (
-          <div className="p-3 rounded-xl bg-amber-950/80 border border-amber-500/40 text-amber-300 text-xs font-bold font-subheading flex items-center justify-center gap-2 box-glow-cyan">
-            <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
-            <span>Rakip bekleniyor... Her iki oyuncu da "HAZIRIM" butonuna basmalı.</span>
-          </div>
-        ) : (
-          <div className="p-2.5 text-xs text-slate-400 font-medium">
-            Maçın başlaması için her iki oyuncunun da <span className="text-cyan-400 font-bold">HAZIRIM</span> butonuna basması gereklidir.
-          </div>
-        )}
+      <div className="flex min-h-6 items-center justify-center gap-2 text-center text-sm text-ink-soft">
+        {showStatusSpinner && <LogoSpinner size={18} label={bothReady ? 'Maç başlıyor' : 'Bekleniyor'} />}
+        <span>{statusMessage}</span>
       </div>
 
-      {/* Action Area */}
-      <div className="w-full space-y-2.5 pt-1">
-        <Button
-          variant={myPlayerObj?.isReady ? 'ghost' : 'cyan'}
-          size="lg"
-          fullWidth
-          onClick={toggleReady}
-          disabled={isStarting || !hasTwoPlayers}
-        >
-          <UserCheck className="w-5 h-5" />
-          <span>{myPlayerObj?.isReady ? 'HAZIR DEĞİLİM' : 'HAZIRIM'}</span>
-        </Button>
-      </div>
+      <Button
+        variant={myPlayerObj?.isReady ? 'secondary' : 'primary'}
+        size="lg"
+        fullWidth
+        onClick={toggleReady}
+        disabled={isStarting || !hasTwoPlayers}
+      >
+        {myPlayerObj?.isReady ? 'Hazır değilim' : 'Hazırım'}
+      </Button>
     </motion.div>
   );
 };
