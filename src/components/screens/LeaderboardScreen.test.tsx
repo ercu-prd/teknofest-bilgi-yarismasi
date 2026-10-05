@@ -69,13 +69,13 @@ describe('LeaderboardScreen', () => {
     await flush();
 
     mocks.rpc.mockResolvedValue(ok([entry(1, 'Usta', 1500)], 'all'));
-    fireEvent.click(screen.getByRole('tab', { name: 'Tüm Zamanlar' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Tüm zamanlar' }));
     await flush();
 
     expect(mocks.rpc).toHaveBeenLastCalledWith('get_leaderboard_rpc', { p_period: 'all', p_limit: 10 });
     expect(screen.getByText('Usta')).toBeInTheDocument();
     expect(screen.queryByText('Ayşe')).not.toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Tüm Zamanlar' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Tüm zamanlar' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('10 saniyede bir yeniler ve unmount olunca durur', async () => {
@@ -125,12 +125,12 @@ describe('LeaderboardScreen', () => {
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
-  it('Ana Menü butonu HOME ekranına döner ve hash i temizler', async () => {
+  it('Ana menü butonu HOME ekranına döner ve hash i temizler', async () => {
     mocks.rpc.mockResolvedValue(ok([]));
     window.location.hash = '#/leaderboard';
     render(<LeaderboardScreen />);
     await flush();
-    fireEvent.click(screen.getByRole('button', { name: /Ana Menü/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Ana menü/ }));
     expect(setScreen).toHaveBeenCalledWith('HOME');
     expect(window.location.hash).toBe('');
   });
@@ -141,6 +141,6 @@ describe('LeaderboardScreen', () => {
     await flush();
     expect(mocks.rpc).toHaveBeenCalledWith('get_leaderboard_rpc', { p_period: 'today', p_limit: 20 });
     expect(screen.getByTestId('stand-join-info')).toHaveTextContent(`Katılmak için: ${window.location.origin}`);
-    expect(screen.queryByRole('button', { name: /Ana Menü/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Ana menü/ })).not.toBeInTheDocument();
   });
 });

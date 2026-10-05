@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { AlertCircle, ArrowLeft, Crown, Loader2, Swords, Trophy, WifiOff } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Loader2, Swords, Trophy, WifiOff, X } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
+import { LogoSpinnerBlock } from '../ui/LogoSpinner';
 import { TournamentEntry } from '../tournament/TournamentEntry';
 import { TournamentRegistration } from '../tournament/TournamentRegistration';
 import { BracketView } from '../tournament/BracketView';
@@ -16,15 +17,20 @@ import type { TournamentInfo } from '../tournament/types';
 const ErrorBanner: React.FC<{ message: string; onClose?: () => void }> = ({ message, onClose }) => (
   <div
     role="alert"
-    className="w-full p-3 rounded-xl bg-rose-950/90 border border-rose-500/60 text-rose-200 text-xs font-bold flex items-center justify-between gap-2"
+    className="w-full pl-3 pr-1 py-1 min-h-11 rounded-xl bg-danger-soft border border-danger/20 text-danger text-sm flex items-center justify-between gap-2"
   >
-    <span className="flex items-center gap-2">
-      <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+    <span className="flex items-center gap-2 py-2">
+      <AlertCircle className="w-4 h-4 shrink-0" />
       {message}
     </span>
     {onClose && (
-      <button type="button" onClick={onClose} aria-label="Kapat" className="text-rose-400 hover:text-white text-sm">
-        ✕
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Kapat"
+        className="w-10 h-10 shrink-0 inline-flex items-center justify-center rounded-lg hover:bg-danger/10 cursor-pointer"
+      >
+        <X className="w-4 h-4" />
       </button>
     )}
   </div>
@@ -40,7 +46,7 @@ const ChampionCard: React.FC<{ champion: NonNullable<TournamentInfo['champion']>
         particleCount: 120,
         spread: 90,
         origin: { y: 0.4 },
-        colors: ['#00f0ff', '#a855f7', '#eab308', '#ffffff'],
+        colors: ['#1f56a8', '#d3262d', '#ffffff'],
       });
     } catch {
       // Canvas kullanılamıyorsa konfeti atlanır.
@@ -48,15 +54,13 @@ const ChampionCard: React.FC<{ champion: NonNullable<TournamentInfo['champion']>
   }, []);
 
   return (
-    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full">
-      <Card variant="purple" glow className="w-full text-center space-y-2">
-        <div data-testid="champion-card" className="space-y-2">
-          <Crown className="w-10 h-10 mx-auto text-amber-300 drop-shadow-[0_0_12px_rgba(252,211,77,0.6)]" />
-          <span className="block text-[11px] font-bold uppercase tracking-widest text-amber-300 font-subheading">
-            Şampiyon
-          </span>
-          <div className="text-5xl">{champion.avatar}</div>
-          <div className="text-xl font-black text-white font-heading break-words">{champion.name}</div>
+    <motion.div initial={{ scale: 0.97, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.2 }} className="w-full">
+      <Card variant="brand" className="w-full text-center">
+        <div data-testid="champion-card" className="space-y-1.5">
+          <Trophy className="w-8 h-8 mx-auto text-warning" aria-hidden="true" />
+          <span className="block text-sm font-medium text-ink-soft">Şampiyon</span>
+          <div className="text-5xl" aria-hidden="true">{champion.avatar}</div>
+          <div className="text-xl font-semibold text-ink break-words">{champion.name}</div>
         </div>
       </Card>
     </motion.div>
@@ -76,7 +80,7 @@ const TournamentView: React.FC<{ code: string }> = ({ code }) => {
       <div className="w-full space-y-4 text-center">
         <ErrorBanner message={fatalError} />
         <Button variant="ghost" fullWidth onClick={goHome}>
-          <ArrowLeft className="w-4 h-4" /> Ana Menü
+          <ArrowLeft className="w-4 h-4" /> Ana menü
         </Button>
       </div>
     );
@@ -84,9 +88,8 @@ const TournamentView: React.FC<{ code: string }> = ({ code }) => {
 
   if (!data) {
     return (
-      <div className="w-full py-16 flex flex-col items-center gap-3 text-slate-400 text-sm">
-        <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
-        Turnuva yükleniyor…
+      <div className="w-full">
+        <LogoSpinnerBlock label="Turnuva yükleniyor" hint="Turnuva yükleniyor…" />
         {error && <ErrorBanner message={error} />}
       </div>
     );
@@ -151,7 +154,7 @@ const TournamentView: React.FC<{ code: string }> = ({ code }) => {
         />
       )}
       {error && (
-        <div className="w-full p-2.5 rounded-xl bg-amber-950/70 border border-amber-500/40 text-amber-200 text-[11px] font-bold flex items-center gap-2">
+        <div className="w-full p-3 rounded-xl bg-warning-soft text-warning text-sm flex items-center gap-2">
           <WifiOff className="w-4 h-4 shrink-0" /> Bağlantı sorunu, yeniden deneniyor…
         </div>
       )}
@@ -167,33 +170,33 @@ const TournamentView: React.FC<{ code: string }> = ({ code }) => {
       ) : (
         <>
           <div className="text-center space-y-1.5">
-            <Badge variant={tournament.status === 'FINISHED' ? 'amber' : 'emerald'} size="sm">
-              {tournament.status === 'FINISHED' ? 'Tamamlandı' : 'Devam Ediyor'}
+            <Badge variant={tournament.status === 'FINISHED' ? 'success' : 'brand'} size="sm">
+              {tournament.status === 'FINISHED' ? 'Tamamlandı' : 'Devam ediyor'}
             </Badge>
-            <h1 className="text-xl font-black text-white font-heading break-words">{tournament.name}</h1>
-            <p className="text-[11px] text-slate-500 font-subheading tracking-widest">KOD {tournament.code}</p>
+            <h1 className="text-xl font-semibold text-ink break-words">{tournament.name}</h1>
+            <p className="text-xs text-muted">
+              Kod <span className="tabular">{tournament.code}</span>
+            </p>
           </div>
 
           {tournament.status === 'FINISHED' && tournament.champion && <ChampionCard champion={tournament.champion} />}
 
           {my_room_code && tournament.status === 'RUNNING' && (
-            <motion.div animate={{ scale: [1, 1.02, 1] }} transition={{ duration: 1.6, repeat: Infinity }}>
-              <Button variant="cyan" size="lg" fullWidth onClick={() => void handleEnterMatch()} disabled={busy === 'enter'}>
-                {busy === 'enter' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Swords className="w-5 h-5" />}
-                Maçına Gir
-              </Button>
-            </motion.div>
+            <Button variant="primary" size="lg" fullWidth onClick={() => void handleEnterMatch()} disabled={busy === 'enter'}>
+              {busy === 'enter' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Swords className="w-4 h-4" />}
+              Maçına gir
+            </Button>
           )}
 
           {me?.eliminated && tournament.status === 'RUNNING' && (
-            <div className="w-full p-3 rounded-xl bg-slate-900/80 border border-slate-700 text-slate-300 text-xs font-bold text-center">
+            <Card variant="muted" padding="sm" className="text-sm text-ink-soft text-center">
               Elendin — turnuvayı izlemeye devam edebilirsin
-            </div>
+            </Card>
           )}
 
-          <Card className="w-full space-y-3 p-4!">
-            <h2 className="flex items-center gap-2 text-sm font-bold text-white font-subheading">
-              <Trophy className="w-4 h-4 text-purple-300" /> Eleme Ağacı
+          <Card className="space-y-3">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-ink">
+              <Trophy className="w-4 h-4 text-ink-soft" /> Eleme ağacı
             </h2>
             <BracketView size={tournament.size} rounds={tournament.rounds} matches={matches} />
           </Card>
@@ -210,20 +213,17 @@ export const TournamentScreen: React.FC = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center space-y-4 w-full max-w-md mx-auto py-2 px-1"
+      transition={{ duration: 0.18 }}
+      className="w-full space-y-4"
     >
-      <div className="flex items-center justify-between w-full">
-        <button
-          type="button"
-          onClick={() => openTournament(null)}
-          className="flex items-center gap-1.5 text-xs font-bold font-subheading text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
-        >
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" onClick={() => openTournament(null)} className="-ml-2 h-11">
           <ArrowLeft className="w-4 h-4" /> Geri
-        </button>
-        <span className="flex items-center gap-1.5 text-xs font-bold font-subheading text-purple-300 uppercase">
-          <Trophy className="w-4 h-4" /> Turnuva
+        </Button>
+        <span className="flex items-center gap-1.5 text-sm font-medium text-ink-soft">
+          <Trophy className="w-4 h-4 text-brand" /> Turnuva
         </span>
       </div>
       <TournamentView key={activeTournamentCode} code={activeTournamentCode} />

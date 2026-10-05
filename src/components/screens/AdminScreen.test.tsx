@@ -91,7 +91,7 @@ const renderAsAdmin = async () => {
 const fillLogin = (email: string, password: string) => {
   fireEvent.change(screen.getByLabelText('E-posta'), { target: { value: email } });
   fireEvent.change(screen.getByLabelText('Şifre'), { target: { value: password } });
-  fireEvent.click(screen.getByRole('button', { name: /Giriş Yap/ }));
+  fireEvent.click(screen.getByRole('button', { name: /Giriş yap/ }));
 };
 
 describe('AdminScreen giriş', () => {
@@ -130,7 +130,7 @@ describe('AdminScreen giriş', () => {
   it('boş form gönderilmez', async () => {
     render(<AdminScreen />);
     await screen.findByLabelText('E-posta');
-    fireEvent.click(screen.getByRole('button', { name: /Giriş Yap/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Giriş yap/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent('E-posta ve şifre gerekli.');
     expect(mocks.signInWithPassword).not.toHaveBeenCalled();
   });
@@ -145,7 +145,7 @@ describe('AdminScreen giriş', () => {
     expect(screen.queryByLabelText('E-posta')).not.toBeInTheDocument();
 
     window.location.hash = '#/admin';
-    fireEvent.click(screen.getByRole('button', { name: /Çıkış Yap/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Çıkış yap/ }));
     await waitFor(() => expect(mocks.signOut).toHaveBeenCalled());
     await waitFor(() => expect(window.location.hash).toBe(''));
   });
@@ -231,7 +231,7 @@ describe('AdminScreen sorular', () => {
 describe('AdminScreen soru formu', () => {
   const openNew = async () => {
     await renderAsAdmin();
-    fireEvent.click(screen.getByRole('button', { name: /Yeni Soru/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Yeni soru/ }));
     return screen.getByRole('form', { name: 'Soru formu' });
   };
   const setOptions = (values: string[]) =>
@@ -244,11 +244,11 @@ describe('AdminScreen soru formu', () => {
   it('istemci tarafı doğrulama hatalarını gösterir', async () => {
     await openNew();
 
-    fireEvent.change(screen.getByLabelText('Soru Metni'), { target: { value: 'Kısa' } });
+    fireEvent.change(screen.getByLabelText('Soru metni'), { target: { value: 'Kısa' } });
     save();
     expect(screen.getByRole('alert')).toHaveTextContent('Soru metni 5-300 karakter olmalı.');
 
-    fireEvent.change(screen.getByLabelText('Soru Metni'), { target: { value: 'Türkiye nin başkenti?' } });
+    fireEvent.change(screen.getByLabelText('Soru metni'), { target: { value: 'Türkiye nin başkenti?' } });
     setOptions(['Ankara', 'İzmir', '', 'Bursa']);
     save();
     expect(screen.getByRole('alert')).toHaveTextContent('Dört şıkkın tamamı doldurulmalı.');
@@ -271,7 +271,7 @@ describe('AdminScreen soru formu', () => {
 
     fireEvent.change(screen.getByLabelText('Kategori'), { target: { value: 'genel' } });
     fireEvent.change(screen.getByLabelText('Zorluk'), { target: { value: 'orta' } });
-    fireEvent.change(screen.getByLabelText('Soru Metni'), { target: { value: '  Türkiye nin başkenti?  ' } });
+    fireEvent.change(screen.getByLabelText('Soru metni'), { target: { value: '  Türkiye nin başkenti?  ' } });
     setOptions(['İzmir', ' Ankara ', 'Van', 'Bursa']);
     fireEvent.click(screen.getByLabelText('Doğru şık B'));
     save();
@@ -294,7 +294,7 @@ describe('AdminScreen soru formu', () => {
     await renderAsAdmin();
     fireEvent.click(screen.getByRole('button', { name: 'Soru #3 düzenle' }));
 
-    expect(screen.getByLabelText('Soru Metni')).toHaveValue('Dizideki sonraki sayı: 2, 4, 8, ?');
+    expect(screen.getByLabelText('Soru metni')).toHaveValue('Dizideki sonraki sayı: 2, 4, 8, ?');
     expect(screen.getByLabelText('Doğru şık C')).toBeChecked();
     expect(screen.getByLabelText('Kategori')).toHaveValue('mantık');
 

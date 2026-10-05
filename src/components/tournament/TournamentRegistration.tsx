@@ -46,62 +46,62 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = ({
 
   return (
     <div className="w-full space-y-4">
-      <Card variant="cyan" glow className="w-full text-center space-y-3">
-        <Badge variant="purple" size="sm">Kayıt Açık</Badge>
-        <h1 className="text-xl font-black text-white font-heading break-words">{tournament.name}</h1>
+      <Card className="text-center space-y-4">
+        <div className="space-y-1.5">
+          <Badge variant="brand" size="sm">Kayıt açık</Badge>
+          <h1 className="text-xl font-semibold text-ink break-words">{tournament.name}</h1>
+        </div>
         <div>
-          <span className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 font-subheading">
-            Turnuva Kodu
-          </span>
+          <span className="block text-xs text-muted">Turnuva kodu</span>
           <div
             data-testid="tournament-code"
-            className="inline-block mt-1 text-4xl font-black font-heading tracking-widest text-cyan-300 text-glow-cyan bg-slate-950/80 px-6 py-2.5 rounded-xl border border-cyan-500/40"
+            className="inline-block mt-1 font-display text-4xl font-semibold tabular tracking-[0.15em] text-brand bg-brand-soft px-5 py-2 rounded-xl"
           >
             {tournament.code}
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => void handleShare()} className="mx-auto">
+        <div className="flex justify-center">
+          <RoomQrCode url={link} size={160} />
+        </div>
+        <Button variant="secondary" onClick={() => void handleShare()} className="mx-auto">
           {shareResult === 'copied' || shareResult === 'shared' ? (
-            <Check className="w-4 h-4 text-emerald-400" />
+            <Check className="w-4 h-4 text-success" />
           ) : (
             <Share2 className="w-4 h-4" />
           )}
           Davet linkini paylaş
         </Button>
         {shareResult && (
-          <p role="status" className="text-[11px] text-slate-400">
+          <p role="status" className="text-xs text-muted">
             {SHARE_LABEL[shareResult]}
           </p>
         )}
-        <div className="flex justify-center">
-          <RoomQrCode url={link} size={160} />
-        </div>
       </Card>
 
-      <Card className="w-full space-y-3">
+      <Card className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-sm font-bold text-white font-subheading">
-            <Users className="w-4 h-4 text-cyan-400" /> Kayıtlı Oyuncular
+          <h2 className="flex items-center gap-2 text-base font-semibold text-ink">
+            <Users className="w-4 h-4 text-ink-soft" /> Kayıtlı oyuncular
           </h2>
-          <span className="text-sm font-black text-cyan-300 font-heading" data-testid="player-count">
+          <span className="font-display text-lg font-semibold tabular text-ink-soft" data-testid="player-count">
             {players.length}/{tournament.size}
           </span>
         </div>
         {players.length === 0 ? (
-          <p className="text-xs text-slate-500 italic">Henüz kimse kayıt olmadı.</p>
+          <p className="text-sm text-muted">Henüz kimse kayıt olmadı.</p>
         ) : (
           <ul className="grid grid-cols-2 gap-2">
             {players.map((p, i) => (
               <li
                 key={`${p.name}-${i}`}
-                className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs border ${
-                  p.is_me ? 'border-cyan-400/70 bg-cyan-950/40 text-white' : 'border-slate-800 bg-slate-950/50 text-slate-200'
+                className={`flex items-center gap-2 px-2.5 py-2 rounded-xl text-sm border min-w-0 ${
+                  p.is_me ? 'border-brand-line bg-brand-soft text-ink' : 'border-line bg-surface text-ink'
                 }`}
               >
-                <span className="text-base">{p.avatar}</span>
-                <span className="truncate font-subheading">
+                <span className="text-base shrink-0" aria-hidden="true">{p.avatar}</span>
+                <span className="truncate">
                   {p.name}
-                  {p.is_me && <span className="text-cyan-300 font-bold"> (Sen)</span>}
+                  {p.is_me && <span className="text-brand font-medium"> (Sen)</span>}
                 </span>
               </li>
             ))}
@@ -112,17 +112,17 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = ({
       <div className="w-full space-y-2.5">
         {tournament.is_organizer && (
           <>
-            <Button variant="cyan" size="lg" fullWidth disabled={missing > 0 || busy !== null} onClick={onStart}>
-              {busy === 'start' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5" />}
-              Turnuvayı Başlat
+            <Button variant="primary" size="lg" fullWidth disabled={missing > 0 || busy !== null} onClick={onStart}>
+              {busy === 'start' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+              Turnuvayı başlat
             </Button>
             {missing > 0 && (
-              <p className="text-center text-xs text-amber-300 font-bold">{missing} oyuncu daha bekleniyor</p>
+              <p className="text-center text-sm text-muted">{missing} oyuncu daha bekleniyor</p>
             )}
           </>
         )}
         {!tournament.is_organizer && (
-          <p className="text-center text-xs text-slate-400">Organizatörün turnuvayı başlatması bekleniyor…</p>
+          <p className="text-center text-sm text-muted">Organizatörün turnuvayı başlatması bekleniyor…</p>
         )}
         {tournament.am_registered ? (
           <Button variant="ghost" fullWidth onClick={onLeave} disabled={busy !== null}>
@@ -130,7 +130,7 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = ({
             Ayrıl
           </Button>
         ) : (
-          <Button variant="purple" fullWidth onClick={onJoin} disabled={busy !== null || missing === 0}>
+          <Button variant={tournament.is_organizer ? 'secondary' : 'primary'} size="lg" fullWidth onClick={onJoin} disabled={busy !== null || missing === 0}>
             {busy === 'join' ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
             Katıl
           </Button>

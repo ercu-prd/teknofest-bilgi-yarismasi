@@ -50,12 +50,12 @@ export const TOURNAMENT_NAME_MIN = 3;
 export const TOURNAMENT_NAME_MAX = 40;
 export const TOURNAMENT_SIZES = [4, 8] as const;
 
-/** Round başlığı: son round Final, sondan bir önceki Yarı Final, ondan önceki Çeyrek Final. */
+/** Round başlığı: son round Final, sondan bir önceki Yarı final, ondan önceki Çeyrek final. */
 export function roundTitle(roundIndex: number, totalRounds: number): string {
   const fromEnd = totalRounds - 1 - roundIndex;
   if (fromEnd === 0) return 'Final';
-  if (fromEnd === 1) return 'Yarı Final';
-  if (fromEnd === 2) return 'Çeyrek Final';
+  if (fromEnd === 1) return 'Yarı final';
+  if (fromEnd === 2) return 'Çeyrek final';
   return `${roundIndex + 1}. Tur`;
 }
 

@@ -67,10 +67,10 @@ describe('TournamentScreen — giriş görünümü', () => {
     rpc.mockReturnValue(ok({ success: true, code: '654321' }));
     const { openTournament } = setup();
 
-    fireEvent.change(screen.getByLabelText('Turnuva Adı'), { target: { value: '  Final Kupası ' } });
-    fireEvent.click(screen.getByRole('button', { name: '8 Oyuncu' }));
+    fireEvent.change(screen.getByLabelText('Turnuva adı'), { target: { value: '  Final Kupası ' } });
+    fireEvent.click(screen.getByRole('button', { name: '8 oyuncu' }));
     fireEvent.click(screen.getByLabelText('Ben de oynayacağım'));
-    fireEvent.click(screen.getByRole('button', { name: /Turnuva Oluştur/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Turnuva oluştur/ }));
 
     await waitFor(() => expect(openTournament).toHaveBeenCalledWith('654321'));
     expect(rpc).toHaveBeenCalledWith('create_tournament_rpc', {
@@ -84,8 +84,8 @@ describe('TournamentScreen — giriş görünümü', () => {
 
   it('kısa turnuva adında RPC çağırmaz ve uyarır', () => {
     setup();
-    fireEvent.change(screen.getByLabelText('Turnuva Adı'), { target: { value: 'ab' } });
-    fireEvent.click(screen.getByRole('button', { name: /Turnuva Oluştur/ }));
+    fireEvent.change(screen.getByLabelText('Turnuva adı'), { target: { value: 'ab' } });
+    fireEvent.click(screen.getByRole('button', { name: /Turnuva oluştur/ }));
     expect(screen.getByRole('alert')).toHaveTextContent('3-40 karakter');
     expect(rpc).not.toHaveBeenCalled();
   });
@@ -94,7 +94,7 @@ describe('TournamentScreen — giriş görünümü', () => {
     rpc.mockReturnValue(ok({ success: true }));
     const { openTournament } = setup();
     fireEvent.change(screen.getByLabelText('Turnuva kodu'), { target: { value: '112233' } });
-    fireEvent.click(screen.getByRole('button', { name: /Turnuvaya Katıl/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Turnuvaya katıl/ }));
     await waitFor(() => expect(openTournament).toHaveBeenCalledWith('112233'));
     expect(rpc).toHaveBeenCalledWith('join_tournament_rpc', { p_code: '112233', p_name: 'Arda', p_avatar: '🚀' });
   });
@@ -102,7 +102,7 @@ describe('TournamentScreen — giriş görünümü', () => {
   it('geçersiz kodda uyarır', () => {
     setup();
     fireEvent.change(screen.getByLabelText('Turnuva kodu'), { target: { value: '12a3' } });
-    fireEvent.click(screen.getByRole('button', { name: /Turnuvaya Katıl/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Turnuvaya katıl/ }));
     expect(screen.getByRole('alert')).toHaveTextContent('6 haneli');
     expect(rpc).not.toHaveBeenCalled();
   });
@@ -111,7 +111,7 @@ describe('TournamentScreen — giriş görünümü', () => {
     rpc.mockReturnValue(ok({ success: false, error: 'Turnuva dolu' }));
     const { openTournament } = setup();
     fireEvent.change(screen.getByLabelText('Turnuva kodu'), { target: { value: '112233' } });
-    fireEvent.click(screen.getByRole('button', { name: /Turnuvaya Katıl/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Turnuvaya katıl/ }));
     expect(await screen.findByText('Turnuva dolu')).toBeInTheDocument();
     expect(openTournament).not.toHaveBeenCalled();
   });
@@ -119,14 +119,14 @@ describe('TournamentScreen — giriş görünümü', () => {
   it('oyuncu adı boşsa uyarır', () => {
     setup({ player1: { id: '', name: '  ', avatar: '🚀', isHost: true, isReady: false, score: 0, correctAnswers: 0 } });
     fireEvent.change(screen.getByLabelText('Turnuva kodu'), { target: { value: '112233' } });
-    fireEvent.click(screen.getByRole('button', { name: /Turnuvaya Katıl/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Turnuvaya katıl/ }));
     expect(screen.getByRole('alert')).toHaveTextContent('takma ad');
     expect(rpc).not.toHaveBeenCalled();
   });
 
-  it('Ana Menü butonu openTournament(null) çağırır', () => {
+  it('Ana menü butonu openTournament(null) çağırır', () => {
     const { openTournament } = setup();
-    fireEvent.click(screen.getByRole('button', { name: /Ana Menü/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Ana menü/ }));
     expect(openTournament).toHaveBeenCalledWith(null);
   });
 });
@@ -141,7 +141,7 @@ describe('TournamentScreen — kayıt görünümü', () => {
     expect(screen.getByTestId('qr')).toHaveTextContent('tournament=123456');
     expect(screen.getByTestId('player-count')).toHaveTextContent('2/4');
     expect(screen.getByText('Ece')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Turnuvayı Başlat/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Turnuvayı başlat/ })).toBeDisabled();
     expect(screen.getByText('2 oyuncu daha bekleniyor')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Ayrıl/ })).toBeInTheDocument();
   });
@@ -156,7 +156,7 @@ describe('TournamentScreen — kayıt görünümü', () => {
     rpc.mockImplementation((fn: string) => ok(fn === 'get_tournament_rpc' ? full : { success: true }));
     setup({ activeTournamentCode: '123456' });
 
-    const start = await screen.findByRole('button', { name: /Turnuvayı Başlat/ });
+    const start = await screen.findByRole('button', { name: /Turnuvayı başlat/ });
     expect(start).toBeEnabled();
     fireEvent.click(start);
     await waitFor(() => expect(rpc).toHaveBeenCalledWith('start_tournament_rpc', { p_code: '123456' }));
@@ -166,7 +166,7 @@ describe('TournamentScreen — kayıt görünümü', () => {
     rpc.mockImplementation((fn: string) => ok(fn === 'get_tournament_rpc' ? tournamentData() : { success: true }));
     setup({ activeTournamentCode: '123456' });
     const join = await screen.findByRole('button', { name: /^Katıl$/ });
-    expect(screen.queryByRole('button', { name: /Turnuvayı Başlat/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Turnuvayı başlat/ })).not.toBeInTheDocument();
     fireEvent.click(join);
     await waitFor(() =>
       expect(rpc).toHaveBeenCalledWith('join_tournament_rpc', { p_code: '123456', p_name: 'Arda', p_avatar: '🚀' })
@@ -225,7 +225,7 @@ describe('TournamentScreen — polling', () => {
     expect(rpc).toHaveBeenCalledTimes(3);
   });
 
-  it('turnuva bulunamazsa hata ve Ana Menü gösterir, polling durur', async () => {
+  it('turnuva bulunamazsa hata ve Ana menü gösterir, polling durur', async () => {
     rpc.mockReturnValue(ok({ success: false, error: 'Turnuva bulunamadı' }));
     const { openTournament } = setup({ activeTournamentCode: '999999' });
     await flush();
@@ -234,7 +234,7 @@ describe('TournamentScreen — polling', () => {
       await vi.advanceTimersByTimeAsync(9000);
     });
     expect(rpc).toHaveBeenCalledTimes(1);
-    fireEvent.click(screen.getByRole('button', { name: /Ana Menü/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Ana menü/ }));
     expect(openTournament).toHaveBeenCalledWith(null);
   });
 });
@@ -260,8 +260,8 @@ describe('TournamentScreen — eleme ağacı', () => {
     rpc.mockReturnValue(ok(running()));
     setup({ activeTournamentCode: '123456' });
 
-    expect(await screen.findByText('Çeyrek Final')).toBeInTheDocument();
-    expect(screen.getByText('Yarı Final')).toBeInTheDocument();
+    expect(await screen.findByText('Çeyrek final')).toBeInTheDocument();
+    expect(screen.getByText('Yarı final')).toBeInTheDocument();
     expect(screen.getByText('Final')).toBeInTheDocument();
 
     const cards = screen.getAllByTestId('bracket-match');
@@ -277,18 +277,18 @@ describe('TournamentScreen — eleme ağacı', () => {
     expect(screen.getAllByTestId('bracket-placeholder')).toHaveLength(2);
   });
 
-  it('4 kişilik turnuvada Yarı Final ve Final başlıkları', async () => {
+  it('4 kişilik turnuvada Yarı final ve Final başlıkları', async () => {
     rpc.mockReturnValue(ok(tournamentData({ status: 'RUNNING', size: 4, rounds: 2 })));
     setup({ activeTournamentCode: '123456' });
-    expect(await screen.findByText('Yarı Final')).toBeInTheDocument();
+    expect(await screen.findByText('Yarı final')).toBeInTheDocument();
     expect(screen.getByText('Final')).toBeInTheDocument();
-    expect(screen.queryByText('Çeyrek Final')).not.toBeInTheDocument();
+    expect(screen.queryByText('Çeyrek final')).not.toBeInTheDocument();
   });
 
-  it('Maçına Gir → enterRoom(my_room_code)', async () => {
+  it('Maçına gir → enterRoom(my_room_code)', async () => {
     rpc.mockReturnValue(ok(running()));
     const { enterRoom } = setup({ activeTournamentCode: '123456' });
-    fireEvent.click(await screen.findByRole('button', { name: /Maçına Gir/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Maçına gir/ }));
     await waitFor(() => expect(enterRoom).toHaveBeenCalledWith('555555'));
   });
 
@@ -303,7 +303,7 @@ describe('TournamentScreen — eleme ağacı', () => {
     );
     setup({ activeTournamentCode: '123456' });
     expect(await screen.findByText(/Elendin — turnuvayı izlemeye devam edebilirsin/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Maçına Gir/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Maçına gir/ })).not.toBeInTheDocument();
   });
 
   it('FINISHED: şampiyon kartı ve konfeti', async () => {
@@ -315,7 +315,7 @@ describe('TournamentScreen — eleme ağacı', () => {
     expect(within(card).getByText('Şampiyon')).toBeInTheDocument();
     expect(within(card).getByText('Arda')).toBeInTheDocument();
     expect(confettiMock).toHaveBeenCalled();
-    expect(screen.queryByRole('button', { name: /Maçına Gir/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Maçına gir/ })).not.toBeInTheDocument();
   });
 
   it('context hatasını (ör. odaya girilemedi) gösterir', async () => {

@@ -12,6 +12,9 @@ import {
   TOURNAMENT_SIZES,
 } from './types';
 
+const inputClass =
+  'w-full h-11 rounded-xl border border-line bg-surface px-3.5 text-base text-ink placeholder:text-muted outline-none focus:border-brand transition-colors';
+
 const NO_NAME_MSG = 'Önce ana menüden bir takma ad ve avatar seç.';
 
 /** Turnuva oluşturma / kodla katılma görünümü (aktif turnuva yokken). */
@@ -84,52 +87,46 @@ export const TournamentEntry: React.FC = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center space-y-4 w-full max-w-md mx-auto py-2 px-1"
+      transition={{ duration: 0.18 }}
+      className="w-full space-y-4"
     >
-      <div className="flex items-center justify-between w-full">
-        <button
-          type="button"
-          onClick={() => openTournament(null)}
-          className="flex items-center gap-1.5 text-xs font-bold font-subheading text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" /> Ana Menü
-        </button>
-        <span className="flex items-center gap-1.5 text-xs font-bold font-subheading text-purple-300 uppercase">
-          <Trophy className="w-4 h-4" /> Turnuva
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" onClick={() => openTournament(null)} className="-ml-2 h-11">
+          <ArrowLeft className="w-4 h-4" /> Ana menü
+        </Button>
+        <span className="flex items-center gap-1.5 text-sm font-medium text-ink-soft">
+          <Trophy className="w-4 h-4 text-brand" /> Turnuva
         </span>
       </div>
 
-      <div className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-        <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-xl">
+      <Card padding="sm" className="flex items-center gap-3">
+        <span className="w-10 h-10 rounded-full bg-brand-soft flex items-center justify-center text-xl shrink-0" aria-hidden="true">
           {player1.avatar}
         </span>
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 font-subheading">Oyuncu</div>
-          <div className="text-sm font-bold text-white truncate">{playerName || 'Takma ad seçilmedi'}</div>
+          <div className="text-xs text-muted">Oyuncu</div>
+          <div className="text-[15px] font-semibold text-ink truncate">{playerName || 'Takma ad seçilmedi'}</div>
         </div>
-      </div>
+      </Card>
 
       {error && (
         <div
           role="alert"
-          className="w-full p-3 rounded-xl bg-rose-950/90 border border-rose-500/60 text-rose-200 text-xs font-bold flex items-center gap-2"
+          className="w-full p-3 rounded-xl bg-danger-soft border border-danger/20 text-danger text-sm flex items-start gap-2"
         >
-          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
 
-      <Card variant="cyan" glow className="w-full space-y-4">
-        <h2 className="text-sm font-black uppercase tracking-wider text-cyan-300 font-heading">Turnuva Oluştur</h2>
+      <Card className="space-y-4">
+        <h2 className="text-base font-semibold text-ink">Turnuva oluştur</h2>
 
         <div className="space-y-1.5">
-          <label
-            htmlFor="tournament-name"
-            className="block text-xs font-bold uppercase tracking-wider text-cyan-400 font-subheading"
-          >
-            Turnuva Adı
+          <label htmlFor="tournament-name" className="block text-sm font-medium text-ink-soft">
+            Turnuva adı
           </label>
           <input
             id="tournament-name"
@@ -137,52 +134,48 @@ export const TournamentEntry: React.FC = () => {
             value={name}
             maxLength={TOURNAMENT_NAME_MAX}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Örn: Teknofest Kupası"
-            className="w-full bg-slate-950/80 border border-slate-700 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl px-4 py-3 text-sm font-semibold text-white placeholder-slate-600 outline-none transition-all"
+            placeholder="Örn. Kulüp Kupası"
+            className={inputClass}
           />
         </div>
 
         <div className="space-y-1.5">
-          <span className="block text-xs font-bold uppercase tracking-wider text-cyan-400 font-subheading">
-            Oyuncu Sayısı
-          </span>
-          <div className="grid grid-cols-2 gap-2" role="group" aria-label="Oyuncu sayısı">
+          <span className="block text-sm font-medium text-ink-soft">Oyuncu sayısı</span>
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-subtle" role="group" aria-label="Oyuncu sayısı">
             {TOURNAMENT_SIZES.map((s) => (
               <button
                 key={s}
                 type="button"
                 aria-pressed={size === s}
                 onClick={() => setSize(s)}
-                className={`py-2.5 rounded-xl border text-sm font-bold font-subheading transition-all cursor-pointer ${
-                  size === s
-                    ? 'border-cyan-400 bg-cyan-950/60 text-cyan-200 box-glow-cyan'
-                    : 'border-slate-700 bg-slate-950/50 text-slate-400 hover:border-slate-500'
+                className={`h-11 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                  size === s ? 'bg-surface text-ink shadow-card' : 'text-ink-soft hover:text-ink'
                 }`}
               >
-                {s} Oyuncu
+                {s} oyuncu
               </button>
             ))}
           </div>
         </div>
 
-        <label className="flex items-center gap-2.5 text-sm text-slate-200 cursor-pointer select-none">
+        <label className="flex items-center gap-3 min-h-11 text-[15px] text-ink cursor-pointer select-none">
           <input
             type="checkbox"
             checked={join}
             onChange={(e) => setJoin(e.target.checked)}
-            className="w-4 h-4 accent-cyan-400"
+            className="w-5 h-5 accent-brand"
           />
           Ben de oynayacağım
         </label>
 
-        <Button variant="cyan" fullWidth onClick={() => void handleCreate()} disabled={busy !== null}>
-          {busy === 'create' ? <Loader2 className="w-5 h-5 animate-spin" /> : <PlusCircle className="w-5 h-5" />}
-          Turnuva Oluştur
+        <Button variant="primary" fullWidth onClick={() => void handleCreate()} disabled={busy !== null}>
+          {busy === 'create' ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlusCircle className="w-4 h-4" />}
+          Turnuva oluştur
         </Button>
       </Card>
 
-      <Card variant="purple" className="w-full space-y-3">
-        <h2 className="text-sm font-black uppercase tracking-wider text-purple-300 font-heading">Kodla Katıl</h2>
+      <Card className="space-y-3">
+        <h2 className="text-base font-semibold text-ink">Kodla katıl</h2>
         <input
           aria-label="Turnuva kodu"
           type="text"
@@ -191,11 +184,11 @@ export const TournamentEntry: React.FC = () => {
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
           placeholder="6 haneli kod"
-          className="w-full bg-slate-950/80 border border-slate-700 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 rounded-xl px-4 py-3 text-center text-xl font-black tracking-[0.4em] text-white placeholder-slate-600 placeholder:tracking-normal placeholder:text-sm outline-none transition-all"
+          className="w-full h-12 rounded-xl border border-line bg-surface px-3.5 text-center font-display text-2xl font-semibold tabular tracking-[0.3em] text-ink placeholder:text-muted placeholder:font-sans placeholder:text-base placeholder:font-normal placeholder:tracking-normal outline-none focus:border-brand transition-colors"
         />
-        <Button variant="purple" fullWidth onClick={() => void handleJoin()} disabled={busy !== null}>
-          {busy === 'join' ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5" />}
-          Turnuvaya Katıl
+        <Button variant="secondary" fullWidth onClick={() => void handleJoin()} disabled={busy !== null}>
+          {busy === 'join' ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
+          Turnuvaya katıl
         </Button>
       </Card>
     </motion.div>

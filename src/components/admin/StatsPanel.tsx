@@ -2,22 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { AlertCircle, BookOpen, DoorOpen, Layers, Loader2, RefreshCw, Swords } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
+import { LogoSpinnerBlock } from '../ui/LogoSpinner';
 import { formatRate, type AdminStats } from './types';
 
-const StatCard: React.FC<{ label: string; value: number; icon: React.ReactNode; accent: string }> = ({
-  label,
-  value,
-  icon,
-  accent,
-}) => (
-  <div className={`rounded-xl border p-3 bg-slate-900/60 ${accent}`} data-testid="stat-card">
-    <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-      {icon}
+const StatCard: React.FC<{ label: string; value: number; icon: React.ReactNode }> = ({ label, value, icon }) => (
+  <div className="rounded-2xl border border-line bg-surface shadow-card p-3" data-testid="stat-card">
+    <div className="flex items-center gap-1.5 text-sm text-muted">
+      <span className="text-ink-soft" aria-hidden="true">{icon}</span>
       <span>{label}</span>
     </div>
-    <div className="mt-1 text-3xl font-heading font-black text-white tabular-nums">{value}</div>
+    <div className="mt-1 font-display text-3xl font-semibold text-ink tabular">{value}</div>
   </div>
 );
+
+/** Doğru oranı çubuğu: %40 altı kırmızı, %70 altı turuncu, aksi yeşil. */
+const rateColor = (pct: number) => (pct < 40 ? 'bg-danger' : pct < 70 ? 'bg-warning' : 'bg-success');
 
 type StatsResult = { ok: true; stats: AdminStats } | { ok: false; error: string };
 
@@ -75,47 +74,45 @@ export const StatsPanel: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button variant="ghost" size="sm" onClick={reload} disabled={isLoading}>
+        <Button variant="secondary" onClick={reload} disabled={isLoading}>
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
           Yenile
         </Button>
       </div>
 
       {error && (
-        <div role="alert" className="flex items-start gap-2 p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-200 text-sm">
+        <div role="alert" className="flex items-start gap-2 p-3 rounded-xl bg-danger-soft text-danger text-sm">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
 
       {!stats && isLoading && (
-        <div role="status" className="flex items-center justify-center gap-2 py-8 text-cyan-300 text-sm">
-          <Loader2 className="w-5 h-5 animate-spin" /> Yükleniyor…
-        </div>
+        <LogoSpinnerBlock label="İstatistikler yükleniyor" hint="Yükleniyor…" />
       )}
 
       {stats && (
         <>
           <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Aktif soru" value={stats.active_questions} icon={<BookOpen className="w-3.5 h-3.5" />} accent="border-cyan-500/30" />
-            <StatCard label="Toplam soru" value={stats.total_questions} icon={<Layers className="w-3.5 h-3.5" />} accent="border-purple-500/30" />
-            <StatCard label="Bugünkü oda" value={stats.rooms_today} icon={<DoorOpen className="w-3.5 h-3.5" />} accent="border-amber-500/30" />
-            <StatCard label="Bugünkü maç" value={stats.matches_today} icon={<Swords className="w-3.5 h-3.5" />} accent="border-emerald-500/30" />
+            <StatCard label="Aktif soru" value={stats.active_questions} icon={<BookOpen className="w-4 h-4" />} />
+            <StatCard label="Toplam soru" value={stats.total_questions} icon={<Layers className="w-4 h-4" />} />
+            <StatCard label="Bugünkü oda" value={stats.rooms_today} icon={<DoorOpen className="w-4 h-4" />} />
+            <StatCard label="Bugünkü maç" value={stats.matches_today} icon={<Swords className="w-4 h-4" />} />
           </div>
 
           <section className="space-y-2">
-            <h3 className="font-heading font-bold uppercase text-sm text-white">En çok yanlış yapılan sorular</h3>
+            <h3 className="text-base font-semibold text-ink">En çok yanlış yapılan sorular</h3>
             {stats.most_missed.length === 0 ? (
-              <p className="text-sm text-slate-400">Henüz yeterli veri yok (en az 3 cevap gerekli).</p>
+              <p className="text-sm text-muted">Henüz yeterli veri yok (en az 3 cevap gerekli).</p>
             ) : (
               <ol className="space-y-2">
                 {stats.most_missed.map((q) => {
                   const pct = q.correct_rate === null ? 0 : Math.round(Number(q.correct_rate) * 100);
                   return (
-                    <li key={q.id} data-testid="missed-question" className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 space-y-1.5">
-                      <p className="text-sm text-white">{q.question}</p>
+                    <li key={q.id} data-testid="missed-question" className="rounded-2xl border border-line bg-surface shadow-card p-3 space-y-2">
+                      <p className="text-[15px] text-ink">{q.question}</p>
                       <div
-                        className="h-2 rounded-full bg-slate-800 overflow-hidden"
+                        className="h-2 rounded-full bg-subtle overflow-hidden"
                         role="progressbar"
                         aria-valuemin={0}
                         aria-valuemax={100}
@@ -123,11 +120,11 @@ export const StatsPanel: React.FC = () => {
                         aria-label={`Doğru oranı: ${q.question}`}
                       >
                         <div
-                          className="h-full bg-gradient-to-r from-rose-500 to-amber-400"
+                          className={`h-full rounded-full ${rateColor(pct)}`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <div className="flex justify-between text-[11px] text-slate-400">
+                      <div className="flex justify-between text-xs text-muted">
                         <span>{q.times_answered} cevap</span>
                         <span>Doğru: {formatRate(q.correct_rate)}</span>
                       </div>

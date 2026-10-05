@@ -15,8 +15,10 @@ interface QuestionFormProps {
 }
 
 const inputClass =
-  'w-full rounded-xl bg-slate-950/70 border border-slate-700 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400';
-const labelClass = 'block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1';
+  'w-full h-11 rounded-xl border border-line bg-surface px-3.5 text-base text-ink placeholder:text-muted outline-none focus:border-brand transition-colors';
+const textareaClass =
+  'w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-muted outline-none focus:border-brand transition-colors';
+const labelClass = 'block text-sm font-medium text-ink-soft mb-1.5';
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 
 export const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSaved, onCancel }) => {
@@ -63,18 +65,23 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSaved, o
   };
 
   return (
-    <Card variant="purple" className="relative p-4">
+    <Card>
       <form onSubmit={handleSubmit} noValidate className="space-y-4" aria-label="Soru formu">
         <div className="flex items-center justify-between">
-          <h2 className="font-heading font-black uppercase text-white">
-            {draft.id === null ? 'Yeni Soru' : `Soruyu Düzenle #${draft.id}`}
+          <h2 className="text-base font-semibold text-ink">
+            {draft.id === null ? 'Yeni soru' : `Soruyu düzenle #${draft.id}`}
           </h2>
-          <button type="button" onClick={onCancel} aria-label="Formu kapat" className="text-slate-400 hover:text-white">
+          <button
+            type="button"
+            onClick={onCancel}
+            aria-label="Formu kapat"
+            className="-mr-2 w-11 h-11 inline-flex items-center justify-center rounded-xl text-ink-soft hover:bg-subtle hover:text-ink cursor-pointer"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3">
           <div>
             <label htmlFor="qf-category" className={labelClass}>
               Kategori
@@ -113,16 +120,16 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSaved, o
 
         <div>
           <label htmlFor="qf-question" className={labelClass}>
-            Soru Metni
+            Soru metni
           </label>
           <textarea
             id="qf-question"
-            className={`${inputClass} min-h-[80px]`}
+            className={`${textareaClass} min-h-24`}
             value={draft.question}
             maxLength={QUESTION_MAX_LENGTH}
             onChange={(e) => update('question', e.target.value)}
           />
-          <div className="text-right text-[10px] text-slate-500">
+          <div className="mt-1 text-right text-xs text-muted tabular">
             {draft.question.trim().length}/{QUESTION_MAX_LENGTH}
           </div>
         </div>
@@ -134,15 +141,15 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSaved, o
               <input
                 type="radio"
                 name="qf-correct"
-                className="accent-emerald-400 w-4 h-4 shrink-0"
+                className="accent-brand w-5 h-5 shrink-0 cursor-pointer"
                 checked={draft.correctIndex === i}
                 onChange={() => update('correctIndex', i)}
                 aria-label={`Doğru şık ${OPTION_LETTERS[i]}`}
               />
-              <span className="w-5 text-xs font-bold text-slate-400">{OPTION_LETTERS[i]}</span>
+              <span className="w-4 text-sm font-semibold text-ink-soft shrink-0">{OPTION_LETTERS[i]}</span>
               <input
                 type="text"
-                className={`${inputClass} ${draft.correctIndex === i ? 'border-emerald-500/70' : ''}`}
+                className={`${inputClass} ${draft.correctIndex === i ? 'border-success' : ''}`}
                 value={opt}
                 onChange={(e) => setOption(i, e.target.value)}
                 aria-label={`Şık ${OPTION_LETTERS[i]}`}
@@ -157,24 +164,24 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSaved, o
           </label>
           <textarea
             id="qf-explanation"
-            className={`${inputClass} min-h-[60px]`}
+            className={`${textareaClass} min-h-20`}
             value={draft.explanation}
             onChange={(e) => update('explanation', e.target.value)}
           />
         </div>
 
         {error && (
-          <div role="alert" className="flex items-start gap-2 p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-200 text-sm">
+          <div role="alert" className="flex items-start gap-2 p-3 rounded-xl bg-danger-soft text-danger text-sm">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
         <div className="flex gap-2">
-          <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="flex-1">
+          <Button type="button" variant="secondary" onClick={onCancel} className="flex-1">
             Vazgeç
           </Button>
-          <Button type="submit" variant="cyan" size="sm" disabled={isSaving} className="flex-1">
+          <Button type="submit" variant="primary" disabled={isSaving} className="flex-1">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : draft.id === null ? <Save className="w-4 h-4" /> : <Check className="w-4 h-4" />}
             Kaydet
           </Button>

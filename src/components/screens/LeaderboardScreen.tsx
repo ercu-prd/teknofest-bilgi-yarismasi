@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Loader2, Medal, QrCode, RefreshCw, Trophy } from 'lucide-react';
+import { AlertCircle, ArrowLeft, QrCode, RefreshCw, Trophy } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { Logo } from '../ui/Logo';
+import { LogoSpinnerBlock } from '../ui/LogoSpinner';
 
 export type LeaderboardPeriod = 'today' | 'all';
 
@@ -28,25 +30,14 @@ export const LEADERBOARD_REFRESH_MS = 10_000;
 
 const PERIOD_TABS: { value: LeaderboardPeriod; label: string }[] = [
   { value: 'today', label: 'Bugün' },
-  { value: 'all', label: 'Tüm Zamanlar' },
+  { value: 'all', label: 'Tüm zamanlar' },
 ];
 
-const MEDAL_STYLES: Record<number, { row: string; rank: string; label: string }> = {
-  1: {
-    row: 'border-amber-400/60 bg-gradient-to-r from-amber-500/20 to-amber-900/10 shadow-lg shadow-amber-500/10',
-    rank: 'bg-amber-400 text-black',
-    label: 'Altın madalya',
-  },
-  2: {
-    row: 'border-slate-300/50 bg-gradient-to-r from-slate-300/15 to-slate-800/10',
-    rank: 'bg-slate-300 text-black',
-    label: 'Gümüş madalya',
-  },
-  3: {
-    row: 'border-orange-500/50 bg-gradient-to-r from-orange-600/20 to-orange-950/10',
-    rank: 'bg-orange-500 text-black',
-    label: 'Bronz madalya',
-  },
+/** İlk üç sıra: 1. dolu marka dairesi, 2-3 açık marka dairesi. Etiketler ekran okuyucu içindir. */
+const TOP_RANKS: Record<number, { rank: string; label: string }> = {
+  1: { rank: 'bg-brand text-white', label: 'Altın madalya' },
+  2: { rank: 'bg-brand-soft text-brand', label: 'Gümüş madalya' },
+  3: { rank: 'bg-brand-soft text-brand', label: 'Bronz madalya' },
 };
 
 type FetchResult = { ok: true; entries: LeaderboardEntry[] } | { ok: false; error: string };
@@ -119,28 +110,28 @@ export const LeaderboardScreen: React.FC<{ standMode?: boolean }> = ({ standMode
 
   const sizes = standMode
     ? {
-        title: 'text-5xl lg:text-6xl',
-        row: 'px-6 py-4 gap-6',
-        rank: 'w-14 h-14 text-2xl',
-        avatar: 'text-4xl',
-        name: 'text-3xl',
-        score: 'text-4xl',
-        meta: 'text-lg',
+        row: 'px-5 py-4 gap-4 lg:px-6 lg:gap-5',
+        rank: 'w-12 h-12 text-xl lg:w-14 lg:h-14 lg:text-2xl',
+        avatar: 'text-3xl lg:text-4xl',
+        name: 'text-xl lg:text-3xl',
+        score: 'text-3xl lg:text-5xl',
+        meta: 'text-base lg:text-lg',
+        message: 'text-xl lg:text-2xl',
       }
     : {
-        title: 'text-3xl',
-        row: 'px-4 py-3 gap-3',
-        rank: 'w-9 h-9 text-sm',
+        row: 'px-2 py-2.5 gap-3',
+        rank: 'w-8 h-8 text-sm',
         avatar: 'text-2xl',
-        name: 'text-base',
-        score: 'text-xl',
+        name: 'text-[15px]',
+        score: 'text-2xl',
         meta: 'text-xs',
+        message: 'text-sm',
       };
 
   let body: React.ReactNode;
   if (!isSupabaseConfigured) {
     body = (
-      <div role="alert" className="flex items-start gap-3 p-4 rounded-xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-sm">
+      <div role="alert" className="flex items-start gap-3 p-4 rounded-xl bg-warning-soft text-warning text-sm">
         <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
         <span>
           Liderlik tablosu için Supabase bağlantısı gerekli. VITE_SUPABASE_URL ve VITE_SUPABASE_ANON_KEY ortam
@@ -149,28 +140,23 @@ export const LeaderboardScreen: React.FC<{ standMode?: boolean }> = ({ standMode
       </div>
     );
   } else if (isLoading && entries === null) {
-    body = (
-      <div className="flex items-center justify-center gap-3 py-12 text-cyan-300" role="status">
-        <Loader2 className="w-6 h-6 animate-spin" />
-        <span className={standMode ? 'text-2xl' : 'text-sm'}>Yükleniyor…</span>
-      </div>
-    );
+    body = <LogoSpinnerBlock label="Liderlik tablosu yükleniyor" hint="Yükleniyor…" />;
   } else if (error && entries === null) {
     body = (
-      <div role="alert" className="flex flex-col items-center gap-3 p-4 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-200 text-sm text-center">
+      <div role="alert" className="flex flex-col items-center gap-3 p-4 rounded-xl bg-danger-soft text-danger text-sm text-center">
         <div className="flex items-center gap-2">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <span>{error}</span>
         </div>
-        <Button variant="ghost" size="sm" onClick={retry}>
-          <RefreshCw className="w-4 h-4" /> Tekrar Dene
+        <Button variant="secondary" onClick={retry}>
+          <RefreshCw className="w-4 h-4" /> Tekrar dene
         </Button>
       </div>
     );
   } else if (!entries || entries.length === 0) {
     body = (
-      <div className={`text-center py-12 text-slate-400 ${standMode ? 'text-2xl' : 'text-sm'}`}>
-        <Trophy className={`mx-auto mb-3 text-slate-600 ${standMode ? 'w-16 h-16' : 'w-10 h-10'}`} />
+      <div className={`text-center py-12 text-muted ${sizes.message}`}>
+        <Trophy className={`mx-auto mb-3 text-line-strong ${standMode ? 'w-14 h-14' : 'w-10 h-10'}`} aria-hidden="true" />
         {period === 'today'
           ? 'Bugün henüz tamamlanan maç yok. İlk sen ol!'
           : 'Henüz liderlik tablosunda kayıt yok.'}
@@ -180,42 +166,41 @@ export const LeaderboardScreen: React.FC<{ standMode?: boolean }> = ({ standMode
     body = (
       <>
         {error && (
-          <p role="alert" className="text-xs text-rose-300 mb-2 text-center">
+          <p role="alert" className="text-xs text-danger mb-2 text-center">
             Güncelleme başarısız: {error}
           </p>
         )}
-        <ol className={`space-y-2 ${standMode ? 'grid grid-cols-1 xl:grid-cols-2 gap-x-6 space-y-0 gap-y-3' : ''}`}>
+        <ol className={standMode ? 'grid grid-cols-1 lg:grid-cols-2 gap-3' : 'divide-y divide-line'}>
           {entries.map((entry) => {
-            const medal = MEDAL_STYLES[entry.rank];
+            const top = TOP_RANKS[entry.rank];
             return (
               <motion.li
                 key={`${entry.rank}-${entry.name}-${entry.created_at}`}
                 layout
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.18 }}
                 data-testid="leaderboard-row"
-                className={`flex items-center rounded-xl border ${sizes.row} ${
-                  medal ? medal.row : 'border-slate-800 bg-slate-900/50'
+                className={`flex items-center ${sizes.row} ${
+                  standMode ? 'rounded-2xl bg-surface border border-line shadow-card' : ''
                 }`}
               >
                 <span
-                  className={`flex items-center justify-center rounded-full font-heading font-black shrink-0 ${sizes.rank} ${
-                    medal ? medal.rank : 'bg-slate-800 text-slate-300'
+                  className={`flex items-center justify-center rounded-full font-display font-semibold tabular shrink-0 ${sizes.rank} ${
+                    top ? top.rank : 'bg-subtle text-ink-soft'
                   }`}
-                  aria-label={medal ? `${entry.rank}. sıra, ${medal.label}` : `${entry.rank}. sıra`}
+                  aria-label={top ? `${entry.rank}. sıra, ${top.label}` : `${entry.rank}. sıra`}
                 >
-                  {medal && entry.rank === 1 ? <Medal className="w-1/2 h-1/2" /> : entry.rank}
+                  {entry.rank}
                 </span>
-                <span className={sizes.avatar} aria-hidden="true">
+                <span className={`shrink-0 ${sizes.avatar}`} aria-hidden="true">
                   {entry.avatar}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className={`font-bold text-white truncate ${sizes.name}`}>{entry.name}</div>
-                  <div className={`text-slate-400 ${sizes.meta}`}>{entry.correct_answers} doğru</div>
+                  <div className={`font-semibold text-ink truncate ${sizes.name}`}>{entry.name}</div>
+                  <div className={`text-muted ${sizes.meta}`}>{entry.correct_answers} doğru</div>
                 </div>
-                <span className={`font-heading font-black text-cyan-300 tabular-nums ${sizes.score}`}>
-                  {entry.score}
-                </span>
+                <span className={`font-display font-semibold text-ink tabular shrink-0 ${sizes.score}`}>{entry.score}</span>
               </motion.li>
             );
           })}
@@ -224,68 +209,84 @@ export const LeaderboardScreen: React.FC<{ standMode?: boolean }> = ({ standMode
     );
   }
 
+  const tabs = (
+    <div
+      role="tablist"
+      aria-label="Dönem"
+      className={`grid grid-cols-2 gap-1 p-1 rounded-xl bg-subtle ${standMode ? 'w-full max-w-md mx-auto' : ''}`}
+    >
+      {PERIOD_TABS.map((tab) => {
+        const active = tab.value === period;
+        return (
+          <button
+            key={tab.value}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => changePeriod(tab.value)}
+            className={`rounded-lg font-medium transition-colors cursor-pointer ${standMode ? 'h-12 text-lg' : 'h-11 text-sm'} ${
+              active ? 'bg-surface text-ink shadow-card' : 'text-ink-soft hover:text-ink'
+            }`}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  if (standMode) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
+        className="w-full space-y-6 py-2"
+      >
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4 min-w-0">
+            <Logo size={64} />
+            <div className="min-w-0">
+              <p className="text-lg lg:text-xl font-semibold text-ink-soft">OKÜ TEKNOFEST Bilgi Yarışması</p>
+              <h1 className="text-3xl lg:text-5xl font-bold text-ink">Liderlik tablosu</h1>
+            </div>
+          </div>
+          <div
+            data-testid="stand-join-info"
+            className="flex items-center gap-2 px-4 py-3 rounded-xl bg-surface border border-line shadow-card text-lg lg:text-xl font-medium text-ink min-w-0"
+          >
+            <QrCode className="w-6 h-6 text-brand shrink-0" aria-hidden="true" />
+            <span className="break-all">Katılmak için: {joinUrl}</span>
+          </div>
+        </header>
+
+        {tabs}
+
+        <div>{body}</div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.3 }}
-      className={
-        standMode
-          ? 'relative w-full max-w-7xl mx-auto px-4 sm:px-8 py-6 space-y-6'
-          : 'w-full max-w-md mx-auto py-2 px-1 space-y-5'
-      }
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
+      className="w-full space-y-4"
     >
-      {standMode && (
-        <div
-          data-testid="stand-join-info"
-          className="absolute top-4 right-4 sm:right-8 flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/80 border border-cyan-500/40 text-cyan-200 text-lg sm:text-xl font-bold"
-        >
-          <QrCode className="w-6 h-6 text-cyan-400" />
-          <span>Katılmak için: {joinUrl}</span>
-        </div>
-      )}
+      <h1 className="flex items-center gap-2 text-2xl font-bold text-ink">
+        <Trophy className="w-6 h-6 text-brand" aria-hidden="true" />
+        Liderlik tablosu
+      </h1>
 
-      <div className={`text-center space-y-2 ${standMode ? 'pt-14' : ''}`}>
-        <h1 className={`font-black tracking-tight text-white uppercase font-heading text-glow-cyan ${sizes.title}`}>
-          <Trophy className={`inline-block mr-2 text-amber-400 align-middle ${standMode ? 'w-14 h-14' : 'w-8 h-8'}`} />
-          Liderlik Tablosu
-        </h1>
-      </div>
+      {tabs}
 
-      <div role="tablist" aria-label="Dönem" className="flex justify-center gap-2">
-        {PERIOD_TABS.map((tab) => {
-          const active = tab.value === period;
-          return (
-            <button
-              key={tab.value}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              onClick={() => changePeriod(tab.value)}
-              className={`rounded-xl font-heading font-bold uppercase tracking-wider border transition-colors ${
-                standMode ? 'px-8 py-3 text-xl' : 'px-4 py-2 text-xs'
-              } ${
-                active
-                  ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 box-glow-cyan'
-                  : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
-              }`}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+      <Card padding="sm">{body}</Card>
 
-      <Card variant="cyan" className={`relative ${standMode ? 'p-8' : 'p-4'}`}>
-        {body}
-      </Card>
-
-      {!standMode && (
-        <Button variant="ghost" fullWidth onClick={goHome}>
-          <ArrowLeft className="w-4 h-4" /> Ana Menü
-        </Button>
-      )}
+      <Button variant="ghost" fullWidth onClick={goHome}>
+        <ArrowLeft className="w-4 h-4" /> Ana menü
+      </Button>
     </motion.div>
   );
 };
