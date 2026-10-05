@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
+import { copyText } from '../../lib/clipboard';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
@@ -14,15 +15,17 @@ export const LobbyScreen: React.FC = () => {
     player2,
     toggleReady,
     isStarting,
-    setScreen,
+    leaveRoom,
   } = useGame();
 
   const [copied, setCopied] = useState(false);
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(roomCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyCode = async () => {
+    // Works over plain HTTP too (LAN demos), where navigator.clipboard is undefined.
+    if (await copyText(roomCode)) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const hasTwoPlayers = Boolean(player1 && player1.id && player2 && player2.id);
@@ -43,7 +46,7 @@ export const LobbyScreen: React.FC = () => {
       {/* Navigation Top Action */}
       <div className="flex items-center justify-between w-full">
         <button
-          onClick={() => setScreen('HOME')}
+          onClick={() => void leaveRoom()}
           className="flex items-center gap-1.5 text-xs font-bold font-subheading text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" /> Ana Menü

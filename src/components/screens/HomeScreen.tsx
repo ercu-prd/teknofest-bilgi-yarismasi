@@ -5,7 +5,7 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { AvatarSelector } from '../ui/AvatarSelector';
 import { Users, PlusCircle, ArrowRight, Gamepad2, AlertCircle } from 'lucide-react';
-import { AVATAR_OPTIONS } from '../../data/mockQuestions';
+import { AVATAR_OPTIONS } from '../../data/avatars';
 
 export const HomeScreen: React.FC = () => {
   const { player1, updatePlayerName, updatePlayerAvatar, createRoom, joinRoom, errorMsg: globalErrorMsg, clearError } = useGame();

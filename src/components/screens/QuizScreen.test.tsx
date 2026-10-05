@@ -12,7 +12,6 @@ const player = (name: string, extra: Partial<Player> = {}): Player => ({
   isHost: false,
   isReady: true,
   score: 0,
-  streak: 0,
   correctAnswers: 0,
   ...extra,
 });
@@ -34,6 +33,7 @@ const setup = (overrides: Record<string, unknown> = {}) => {
     questions: QUESTIONS,
     currentQuestionIndex: 0,
     matchStartTime: Date.now(),
+    settings: { matchSeconds: 90, questionCount: 10, countdownSeconds: 3 },
     ...fns,
     ...overrides,
   };

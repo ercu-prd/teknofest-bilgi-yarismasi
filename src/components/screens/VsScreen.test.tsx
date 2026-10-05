@@ -12,7 +12,6 @@ const player = (name: string, isHost: boolean): Player => ({
   isHost,
   isReady: true,
   score: 0,
-  streak: 0,
   correctAnswers: 0,
 });
 
@@ -23,6 +22,7 @@ const setup = (matchStartTime: number | null) => {
     opponentPlayer: player('Ayşe', false),
     matchStartTime,
     setScreen,
+    settings: { matchSeconds: 90, questionCount: 10, countdownSeconds: 3 },
   };
   render(<VsScreen />);
   return { setScreen };
@@ -56,9 +56,8 @@ describe('VsScreen', () => {
     expect(setScreen).toHaveBeenCalledWith('QUIZ');
   });
 
-  // VsScreen.tsx:16 — matchStartTime null iken setInterval kapanışı ilk "countdown"
-  // değerini (3) yakalıyor; sayaç hep 2'de kalıyor ve QUIZ ekranına hiç geçilmiyor.
-  it.fails('BİLİNEN HATA: matchStartTime yokken de geri sayım bitmeli', () => {
+  // Regresyon: matchStartTime null iken sayaç eskiden 2'de takılıp kalıyordu.
+  it('matchStartTime yokken de geri sayım biter ve QUIZ ekranına geçer', () => {
     const { setScreen } = setup(null);
     act(() => vi.advanceTimersByTime(5000));
     expect(setScreen).toHaveBeenCalledWith('QUIZ');

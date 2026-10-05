@@ -1,5 +1,5 @@
 import React from 'react';
-import { AVATAR_OPTIONS } from '../../data/mockQuestions';
+import { AVATAR_OPTIONS } from '../../data/avatars';
 
 interface AvatarSelectorProps {
   selectedId: string;

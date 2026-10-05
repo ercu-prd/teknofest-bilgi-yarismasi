@@ -4,6 +4,8 @@ import { useGame } from '../../context/GameContext';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Clock, Zap, CheckCircle2, XCircle } from 'lucide-react';
+import { serverNow } from '../../lib/serverClock';
+import { APP_CONFIG } from '../../config/appConfig';
 
 type QuestionState = 'IDLE' | 'SUBMITTING' | 'FEEDBACK';
 
@@ -17,12 +19,14 @@ export const QuizScreen: React.FC = () => {
     answerQuestion,
     advanceQuestionIndex,
     finishQuiz,
+    settings,
   } = useGame();
+  const matchSeconds = settings.matchSeconds;
 
   const [timeLeft, setTimeLeft] = useState<number>(() => {
-    if (!matchStartTime) return 90;
-    const elapsed = Math.floor((Date.now() - matchStartTime) / 1000);
-    return Math.max(0, 90 - elapsed);
+    if (!matchStartTime) return matchSeconds;
+    const elapsed = Math.floor((serverNow() - matchStartTime) / 1000);
+    return Math.max(0, matchSeconds - elapsed);
   });
   const [questionState, setQuestionState] = useState<QuestionState>('IDLE');
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -36,15 +40,15 @@ export const QuizScreen: React.FC = () => {
   const finishDelayRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentQ = questions[currentQuestionIndex] || questions[0];
 
-  // Global 90-second match timer calculated from server matchStartTime
+  // Global match timer calculated from the server start time, corrected for device clock skew
   useEffect(() => {
     const updateTimer = () => {
       if (!matchStartTime) {
-        setTimeLeft(90);
+        setTimeLeft(matchSeconds);
         return;
       }
-      const elapsed = Math.floor((Date.now() - matchStartTime) / 1000);
-      const remaining = Math.max(0, 90 - elapsed);
+      const elapsed = Math.floor((serverNow() - matchStartTime) / 1000);
+      const remaining = Math.max(0, matchSeconds - elapsed);
       setTimeLeft(remaining);
 
       if (remaining <= 0) {
@@ -55,7 +59,7 @@ export const QuizScreen: React.FC = () => {
     updateTimer();
     const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
-  }, [matchStartTime, finishQuiz]);
+  }, [matchStartTime, matchSeconds, finishQuiz]);
 
   // Clean up timers on unmount
   useEffect(() => {
@@ -135,7 +139,7 @@ export const QuizScreen: React.FC = () => {
       } else {
         advanceQuestionIndex();
       }
-    }, 1200);
+    }, APP_CONFIG.answerFeedbackMs);
   };
 
   const optionLabels = ['A', 'B', 'C', 'D'];

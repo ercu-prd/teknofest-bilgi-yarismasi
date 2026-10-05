@@ -1,26 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
 import { Swords, Zap, Flame } from 'lucide-react';
+import { serverNow } from '../../lib/serverClock';
 
 export const VsScreen: React.FC = () => {
-  const { myPlayer, opponentPlayer, matchStartTime, setScreen } = useGame();
-  const [countdown, setCountdown] = useState<number>(() =>
-    matchStartTime ? Math.max(0, Math.ceil((matchStartTime - Date.now()) / 1000)) : 3
-  );
+  const { myPlayer, opponentPlayer, matchStartTime, setScreen, settings } = useGame();
+  // Fallback deadline if the server start time hasn't arrived yet (fixed at mount, so it can't stall).
+  const [fallbackStart] = useState<number>(() => serverNow() + settings.countdownSeconds * 1000);
+  const startAt = matchStartTime ?? fallbackStart;
+  const [countdown, setCountdown] = useState<number>(() => Math.max(0, Math.ceil((startAt - serverNow()) / 1000)));
+  const switchedRef = useRef(false);
 
   useEffect(() => {
     const update = () => {
-      const remaining = matchStartTime
-        ? Math.max(0, Math.ceil((matchStartTime - Date.now()) / 1000))
-        : Math.max(0, countdown - 1);
+      const remaining = Math.max(0, Math.ceil((startAt - serverNow()) / 1000));
       setCountdown(remaining);
-      if (remaining <= 0) setScreen('QUIZ');
+      if (remaining <= 0 && !switchedRef.current) {
+        switchedRef.current = true;
+        setScreen('QUIZ');
+      }
     };
     const timer = setInterval(update, 200);
     update();
     return () => clearInterval(timer);
-  }, [matchStartTime, setScreen]);
+  }, [startAt, setScreen]);
 
   return (
     <motion.div
@@ -139,7 +143,7 @@ export const VsScreen: React.FC = () => {
         </AnimatePresence>
 
         <p className="text-xs text-slate-400 font-medium font-subheading">
-          90 Saniye • 10 Soru • En Yüksek Skor Kazanır
+          {settings.matchSeconds} Saniye • {settings.questionCount} Soru • En Yüksek Skor Kazanır
         </p>
       </div>
     </motion.div>

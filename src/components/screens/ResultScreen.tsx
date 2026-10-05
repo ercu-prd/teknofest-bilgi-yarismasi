@@ -26,7 +26,7 @@ const InstagramIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5"
 );
 
 export const ResultScreen: React.FC = () => {
-  const { myPlayer, opponentPlayer, winner, isDraw, restartGame, setScreen } = useGame();
+  const { myPlayer, opponentPlayer, winner, isDraw, returnToLobby, leaveRoom } = useGame();
 
   const isMyVictory = winner?.id === myPlayer.id;
 
@@ -195,7 +195,7 @@ export const ResultScreen: React.FC = () => {
           variant="cyan"
           size="lg"
           fullWidth
-          onClick={restartGame}
+          onClick={() => void returnToLobby()}
         >
           <RefreshCw className="w-5 h-5" />
           <span>TEKRAR OYNA</span>
@@ -205,7 +205,7 @@ export const ResultScreen: React.FC = () => {
           variant="ghost"
           size="lg"
           fullWidth
-          onClick={() => setScreen('HOME')}
+          onClick={() => void leaveRoom()}
         >
           <Home className="w-5 h-5" />
           <span>ANA MENÜYE DÖN</span>
