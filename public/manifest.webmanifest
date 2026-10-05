@@ -1,0 +1,20 @@
+{
+  "name": "TEKNOFEST 1v1 Bilgi Arenası",
+  "short_name": "TEKNO Arena",
+  "description": "Teknofest Üniversite Kulübü 1v1 Mobil Öncelikli Bilgi Yarışması Platformu",
+  "lang": "tr",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#070a12",
+  "background_color": "#070a12",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
