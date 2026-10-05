@@ -60,19 +60,71 @@ supabase db reset
 npm run dev
 ```
 
-## Test
+## Testler
+
+| Komut | Ne çalıştırır |
+| --- | --- |
+| `npm test` | Vitest: birim/bileşen testleri (`src/**/*.test.ts(x)`) **ve** SQL testleri (`src/test/sql/`) |
+| `npm run test:watch` | Vitest izleme modu |
+| `npm run test:e2e` | Playwright E2E testleri (`e2e/`) |
+| `npm run lint` / `npx tsc -b` | oxlint ve tip kontrolü |
+
+### Birim ve bileşen testleri
+
+Vitest + Testing Library + jsdom ile yazılmıştır (`vite.config.ts` içindeki `test` bölümüne bakınız). `e2e/` klasörü Vitest'in dışında tutulur.
+
+### SQL testleri (PGlite)
+
+`src/test/sql/` altındaki testler, `supabase/migrations/` içindeki tüm migration'ları bellek içi bir Postgres'e ([PGlite](https://pglite.dev)) sırayla uygulayıp RPC'leri doğrudan çağırır. Docker veya Supabase hesabı gerekmez; `npm test` içinde koşar.
+
+> **Sınırlama:** PGlite bağlantısı süper kullanıcı olarak çalıştığı için `GRANT`/`REVOKE` ve Row Level Security (RLS) kuralları **test edilemez**. Bu testler RPC'lerin iş mantığını (`auth.uid()` ve üyelik kontrolleri, puanlama, idempotentlik) doğrular; `anon` rolünün tablolara erişiminin gerçekten kapalı olduğu migration'lardaki `REVOKE` ifadeleri okunarak ya da gerçek bir Supabase projesinde kontrol edilmelidir.
+
+### E2E testleri (Playwright)
+
+İlk kurulumda tarayıcıyı indirin:
 
 ```bash
-npm test
+npx playwright install chromium
 ```
 
-İzleme modu (dosya değişikliklerinde otomatik çalıştırma):
+`playwright.config.ts`, `npm run dev -- --port 5179 --strictPort` ile geliştirme sunucusunu kendisi başlatır (açık bir sunucu varsa yeniden kullanır) ve testleri iki projede koşar: `mobile-chromium` (Pixel 7) ve `desktop-chromium`.
 
-```bash
-npm run test:watch
-```
+- **`e2e/smoke.spec.ts`** — Supabase gerektirmez: ana ekran, isim doğrulaması, oda kodu girişi, `?room=` davet linki, `.env` yokken "yapılandırılmamış" uyarısı, `#/leaderboard` stant modu, `#/admin` ekranı, manifest ve mobilde yatay taşma.
 
-Testler Vitest + Testing Library + jsdom ile yazılmıştır (`vite.config.ts` içindeki `test` bölümüne bakınız).
+  ```bash
+  npx playwright test e2e/smoke.spec.ts
+  npx playwright test e2e/smoke.spec.ts --project=mobile-chromium
+  ```
+
+- **`e2e/duel.spec.ts`** — gerçek Supabase'e karşı iki ayrı tarayıcı oturumuyla uçtan uca 1v1 düello (oda kur → katıl → HAZIRIM → 10 soru → sonuç → rövanş isteği), sayfa yenileyince odada kalma ve lobiden çıkış senaryoları. Varsayılan olarak **atlanır**. Çalıştırmak için:
+  1. Supabase projesinde **Anonymous Sign-Ins** açık olmalı.
+  2. Tüm migration'lar uygulanmış olmalı (bkz. "Supabase migration'larını uygula").
+  3. `.env` dosyası `VITE_SUPABASE_URL` ve `VITE_SUPABASE_ANON_KEY` ile dolu olmalı.
+  4. `E2E_SUPABASE=1` ile çalıştırın:
+
+     ```bash
+     # bash
+     E2E_SUPABASE=1 npx playwright test e2e/duel.spec.ts --project=desktop-chromium
+     # PowerShell
+     $env:E2E_SUPABASE='1'; npx playwright test e2e/duel.spec.ts --project=desktop-chromium
+     ```
+
+  Testler gerçek oda ve maç kayıtları oluşturur (`E2E_` önekli oyuncular); ayrı bir test projesi kullanmanız önerilir.
+
+Başarısız testlerin raporu: `npx playwright show-report`.
+
+### Sürekli entegrasyon (GitHub Actions)
+
+`.github/workflows/ci.yml` her `push` ve `pull_request`'te Ubuntu + Node 22 üzerinde (`npm ci`, npm önbelleği açık) şu job'ları koşar:
+
+| Job | Adımlar |
+| --- | --- |
+| `lint-typecheck` | `npm run lint`, `npx tsc -b` |
+| `unit-and-sql` | `npm test` (PGlite SQL testleri dahil) |
+| `build` | `npm run build`, `dist/` artifact olarak yüklenir |
+| `e2e-smoke` | `build`'den sonra; `npx playwright install --with-deps chromium`, `npx playwright test e2e/smoke.spec.ts`; başarısızlıkta `playwright-report` artifact olarak yüklenir |
+
+`e2e/duel.spec.ts` Supabase anahtarları (gizli değişkenler) gerektirdiği için CI'da koşmaz; `E2E_SUPABASE` tanımlı olmadığından otomatik olarak atlanır. Yayın öncesinde yerelde yukarıdaki adımlarla çalıştırılmalıdır.
 
 ## Build
 
